@@ -6,8 +6,14 @@ import os
 from ids_api import create_app
 
 if __name__ == '__main__':
+    # Get the project root (directory containing this script)
+    project_root = os.path.dirname(os.path.abspath(__file__))
+    
+    # Change to project root to ensure relative paths work
+    os.chdir(project_root)
+    
     # Configuration
-    model_dir = './model'
+    model_dir = os.path.join(project_root, 'model')
     interface = os.environ.get('IDS_INTERFACE', 'wlp3s0')
     port = int(os.environ.get('IDS_PORT', 5000))
     debug = os.environ.get('IDS_DEBUG', 'False') == 'True'
@@ -15,6 +21,8 @@ if __name__ == '__main__':
     print("\n" + "="*60)
     print("IDS Flask API Server")
     print("="*60)
+    print(f"Project Root: {project_root}")
+    print(f"Model Directory: {model_dir}")
     print(f"Interface: {interface}")
     print(f"Port: {port}")
     print(f"Debug: {debug}")

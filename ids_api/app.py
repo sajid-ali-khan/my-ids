@@ -1,5 +1,6 @@
 """Flask application factory and configuration"""
 
+import os
 from flask import Flask, jsonify, render_template
 from flask_cors import CORS
 from ids_core import PipelineManager
@@ -15,7 +16,22 @@ def create_app(model_dir: str = './model', interface: str = 'wlp3s0'):
     Returns:
         Flask app instance
     """
-    app = Flask(__name__, template_folder='../web', static_folder='../web')
+    # Get the project root directory (parent of ids_api directory)
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    template_folder = os.path.join(project_root, 'web')
+    static_folder = os.path.join(project_root, 'web')
+    
+    # Debug output
+    print(f"\n[Flask] Project Root: {project_root}")
+    print(f"[Flask] Template Folder: {template_folder} (exists: {os.path.exists(template_folder)})")
+    print(f"[Flask] Static Folder: {static_folder} (exists: {os.path.exists(static_folder)})")
+    if os.path.exists(static_folder):
+        print(f"[Flask] Static Files: {os.listdir(static_folder)}\n")
+    
+    app = Flask(__name__, 
+                template_folder=template_folder, 
+                static_folder=static_folder,
+                static_url_path='/')
     CORS(app)
     
     # Initialize PipelineManager
