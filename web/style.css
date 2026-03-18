@@ -1,5 +1,5 @@
 /* ============================================================================
-   IDS Dashboard - Minimal Jupyter-like Styling
+   IDS Dashboard - Grid Layout with Jupyter-like Styling
    ============================================================================ */
 
 * {
@@ -16,21 +16,25 @@ body {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1600px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 12px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 /* ============================================================================
-   Header
+   Header - Compact
    ============================================================================ */
 
 .header {
     background-color: #fff;
     border-bottom: 1px solid #e0e0e0;
-    padding: 20px 0;
-    margin-bottom: 30px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
 }
 
 .header-content {
@@ -39,22 +43,33 @@ body {
     align-items: center;
 }
 
+.header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+}
+
 .header h1 {
-    font-size: 24px;
-    font-weight: 600;
+    font-size: 18px;
+    font-weight: 700;
     color: #1c3a70;
+}
+
+.last-update {
+    font-size: 11px;
+    color: #999;
 }
 
 .status-indicator {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .status-dot {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     background-color: #ccc;
     display: inline-block;
@@ -75,16 +90,73 @@ body {
 }
 
 /* ============================================================================
+   Dashboard Grid Layout
+   ============================================================================ */
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 250px 1fr 1fr;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.column::-webkit-scrollbar {
+    width: 6px;
+}
+
+.column::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.column::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 3px;
+}
+
+.column::-webkit-scrollbar-thumb:hover {
+    background: #bbb;
+}
+
+.column-left {
+    grid-column: 1;
+}
+
+.column-middle {
+    grid-column: 2;
+}
+
+.column-right {
+    grid-column: 3;
+}
+
+/* ============================================================================
    Cells (Jupyter-like panels)
    ============================================================================ */
 
 .cell {
     background-color: #fff;
     border: 1px solid #e0e0e0;
-    margin-bottom: 20px;
     border-radius: 4px;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.cell.compact {
+    min-height: auto;
 }
 
 .cell-header {
@@ -93,23 +165,38 @@ body {
     align-items: center;
     background-color: #f8f9fa;
     border-bottom: 1px solid #e0e0e0;
-    padding: 15px 20px;
+    padding: 10px 12px;
+    flex-shrink: 0;
 }
 
 .cell-header h2 {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     color: #2c3e50;
 }
 
+.cell-header h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+}
+
 .flow-count, .pred-count {
-    font-size: 12px;
+    font-size: 11px;
     color: #7f8c8d;
     font-weight: normal;
+    background: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 2px;
 }
 
 .cell-body {
-    padding: 20px;
+    padding: 12px;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 /* ============================================================================
@@ -118,15 +205,16 @@ body {
 
 .button-group {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 
 .btn {
-    padding: 10px 20px;
-    font-size: 14px;
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 12px;
     font-weight: 600;
     border: none;
-    border-radius: 4px;
+    border-radius: 3px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -155,91 +243,153 @@ body {
 }
 
 /* ============================================================================
-   Statistics Grid
+   Quick Stats - Vertical Layout
    ============================================================================ */
 
-.stats-grid {
+.quick-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
 }
 
-.stat-box {
+.quick-stat {
     background-color: #f8f9fa;
     border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    padding: 15px;
+    border-radius: 3px;
+    padding: 10px;
     text-align: center;
 }
 
-.stat-value {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1c3a70;
-    margin-bottom: 5px;
-}
-
-.stat-label {
-    font-size: 12px;
+.qs-label {
+    font-size: 10px;
     color: #7f8c8d;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    margin-bottom: 4px;
 }
 
-.class-breakdown {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #e0e0e0;
+.qs-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1c3a70;
 }
 
-.class-breakdown h3 {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 10px;
+.qs-value.benign {
+    color: #27ae60;
+}
+
+.qs-value.attack {
+    color: #e74c3c;
+}
+
+/* ============================================================================
+   Class Breakdown
+   ============================================================================ */
+
+.class-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 12px;
 }
 
 .class-item {
     display: flex;
     justify-content: space-between;
-    padding: 8px 0;
-    font-size: 13px;
+    padding: 6px 8px;
+    background-color: #f8f9fa;
+    border-radius: 2px;
 }
 
 .class-name {
     color: #2c3e50;
+    font-weight: 500;
 }
 
 .class-count {
     color: #7f8c8d;
     font-weight: 600;
+    background: #e8f8f5;
+    padding: 0 6px;
+    border-radius: 2px;
 }
 
 /* ============================================================================
-   Tables
+   Configuration - Compact
    ============================================================================ */
+
+.config-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+}
+
+.config-grid.compact {
+    grid-template-columns: 1fr;
+}
+
+.config-item {
+    background-color: #f8f9fa;
+    padding: 6px 8px;
+    border-radius: 2px;
+    border: 1px solid #e0e0e0;
+}
+
+.config-label {
+    display: block;
+    font-size: 9px;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    letter-spacing: 0.3px;
+}
+
+.config-value {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* ============================================================================
+   Tables - Compact
+   ============================================================================ */
+
+.table-container {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid #f0f0f0;
+    border-radius: 2px;
+    margin: -12px -12px 0 -12px;
+}
 
 .table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: 11px;
 }
 
 .table thead {
     background-color: #f8f9fa;
     border-bottom: 1px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .table th {
-    padding: 12px;
+    padding: 8px 8px;
     text-align: left;
     font-weight: 600;
     color: #2c3e50;
+    white-space: nowrap;
 }
 
-.table td {
-    padding: 12px;
-    border-bottom: 1px solid #f0f0f0;
+.table.table-compact td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #f5f5f5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .table tbody tr:hover {
@@ -252,23 +402,26 @@ body {
 
 .no-data {
     text-align: center;
-    color: #7f8c8d;
+    color: #999;
+    padding: 16px !important;
 }
 
 .prediction-benign {
     background-color: #e8f8f5;
     color: #27ae60;
-    padding: 4px 8px;
-    border-radius: 3px;
+    padding: 2px 5px;
+    border-radius: 2px;
     font-weight: 600;
+    font-size: 10px;
 }
 
 .prediction-attack {
     background-color: #fadbd8;
     color: #e74c3c;
-    padding: 4px 8px;
-    border-radius: 3px;
+    padding: 2px 5px;
+    border-radius: 2px;
     font-weight: 600;
+    font-size: 10px;
 }
 
 .confidence-high {
@@ -287,93 +440,73 @@ body {
 }
 
 /* ============================================================================
-   Configuration
+   Responsive - Tablet
    ============================================================================ */
 
-.config-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
+@media (max-width: 1200px) {
+    .dashboard-grid {
+        grid-template-columns: 200px 1fr 1fr;
+    }
+
+    .header h1 {
+        font-size: 16px;
+    }
 }
 
-.config-item {
-    background-color: #f8f9fa;
-    padding: 12px;
-    border-radius: 4px;
-    border: 1px solid #e0e0e0;
+@media (max-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .column-left {
+        grid-column: 1 / 3;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        overflow: visible;
+    }
+
+    .column-middle {
+        grid-column: 1;
+    }
+
+    .column-right {
+        grid-column: 2;
+    }
 }
-
-.config-label {
-    display: block;
-    font-size: 11px;
-    color: #7f8c8d;
-    text-transform: uppercase;
-    margin-bottom: 5px;
-    letter-spacing: 0.5px;
-}
-
-.config-value {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    color: #2c3e50;
-}
-
-/* ============================================================================
-   Footer
-   ============================================================================ */
-
-.footer {
-    text-align: center;
-    padding: 20px;
-    color: #7f8c8d;
-    font-size: 12px;
-    border-top: 1px solid #e0e0e0;
-    margin-top: 40px;
-}
-
-/* ============================================================================
-   Responsive
-   ============================================================================ */
 
 @media (max-width: 768px) {
-    .header-content {
-        flex-direction: column;
-        gap: 15px;
-        align-items: flex-start;
-    }
-
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .table {
-        font-size: 12px;
-    }
-
-    .table th, .table td {
+    .container {
         padding: 8px;
     }
-}
 
-/* ============================================================================
-   Animations & Transitions
-   ============================================================================ */
-
-.loading {
-    opacity: 0.6;
-    pointer-events: none;
-}
-
-.fade-in {
-    animation: fadeIn 0.3s ease-in;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
     }
-    to {
-        opacity: 1;
+
+    .column-left {
+        grid-column: 1;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 8px;
+        overflow: visible;
+    }
+
+    .column-middle {
+        grid-column: 1;
+    }
+
+    .column-right {
+        grid-column: 1;
+    }
+
+    .header h1 {
+        font-size: 14px;
+    }
+
+    .table th, .table.table-compact td {
+        padding: 4px;
+        font-size: 10px;
     }
 }

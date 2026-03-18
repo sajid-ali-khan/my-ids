@@ -157,14 +157,16 @@ function updatePredictionsTable(predictions) {
     const tbody = table.querySelector('tbody');
     
     if (!predictions || predictions.length === 0) {
-        tbody.innerHTML = '<tr class="no-data"><td colspan="6">No predictions yet</td></tr>';
-        document.getElementById('predCount').textContent = '0 predictions';
+        tbody.innerHTML = '<tr class="no-data"><td colspan="5">No predictions yet</td></tr>';
+        document.getElementById('predCount').textContent = '0';
         return;
     }
     
     let html = '';
-    predictions.forEach(pred => {
+    predictions.slice(0, 100).forEach(pred => {
         const time = formatTime(pred.timestamp);
+        const srcIp = pred.src_ip.split('.').slice(-2).join('.');
+        const dstIp = pred.dst_ip.split('.').slice(-2).join('.');
         const predClass = pred.prediction === 'Normal Traffic' 
             ? 'prediction-benign' 
             : 'prediction-attack';
@@ -177,17 +179,16 @@ function updatePredictionsTable(predictions) {
         html += `
             <tr>
                 <td>${time}</td>
-                <td>${escapeHtml(pred.src_ip)}:${pred.src_port}</td>
-                <td>${escapeHtml(pred.dst_ip)}:${pred.dst_port}</td>
-                <td><span class="${predClass}">${escapeHtml(pred.prediction)}</span></td>
+                <td title="${escapeHtml(pred.src_ip)}">${srcIp}:${pred.src_port}</td>
+                <td title="${escapeHtml(pred.dst_ip)}">${dstIp}:${pred.dst_port}</td>
+                <td><span class="${predClass}">${escapeHtml(pred.prediction.substring(0, 6))}</span></td>
                 <td><span class="${confClass}">${(pred.confidence * 100).toFixed(0)}%</span></td>
-                <td>${pred.packets}</td>
             </tr>
         `;
     });
     
     tbody.innerHTML = html;
-    document.getElementById('predCount').textContent = `${predictions.length} predictions`;
+    document.getElementById('predCount').textContent = predictions.length;
 }
 
 // ============================================================================
@@ -204,24 +205,26 @@ async function updateActiveFlows() {
         
         if (!data.flows || data.flows.length === 0) {
             tbody.innerHTML = '<tr class="no-data"><td colspan="4">No active flows</td></tr>';
-            document.getElementById('flowCount').textContent = '0 active';
+            document.getElementById('flowCount').textContent = '0';
             return;
         }
         
         let html = '';
-        data.flows.forEach(flow => {
+        data.flows.slice(0, 50).forEach(flow => {
+            const srcIp = flow.src_ip.split('.').slice(-2).join('.');
+            const dstIp = flow.dst_ip.split('.').slice(-2).join('.');
             html += `
                 <tr>
-                    <td>${escapeHtml(flow.src_ip)}:${flow.src_port}</td>
-                    <td>${escapeHtml(flow.dst_ip)}:${flow.dst_port}</td>
+                    <td title="${escapeHtml(flow.src_ip)}">${srcIp}:${flow.src_port}</td>
+                    <td title="${escapeHtml(flow.dst_ip)}">${dstIp}:${flow.dst_port}</td>
                     <td>${flow.packets}</td>
-                    <td>${(flow.active_time).toFixed(1)}</td>
+                    <td>${(flow.active_time).toFixed(1)}s</td>
                 </tr>
             `;
         });
         
         tbody.innerHTML = html;
-        document.getElementById('flowCount').textContent = `${data.active} active`;
+        document.getElementById('flowCount').textContent = data.active;
         
     } catch (error) {
         console.error('[Dashboard] Error loading flows:', error);

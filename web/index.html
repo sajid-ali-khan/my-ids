@@ -11,7 +11,10 @@
         <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <h1>Network Intrusion Detection System</h1>
+                <div class="header-left">
+                    <h1>Network IDS Dashboard</h1>
+                    <span class="last-update">Last update: <span id="lastUpdate">-</span></span>
+                </div>
                 <div class="status-indicator">
                     <span class="status-dot" id="statusDot"></span>
                     <span class="status-text" id="statusText">Disconnected</span>
@@ -19,141 +22,149 @@
             </div>
         </header>
 
-        <!-- Main Content -->
-        <main class="main">
-            <!-- Control Panel -->
-            <section class="cell">
-                <div class="cell-header">
-                    <h2>Control Panel</h2>
-                </div>
-                <div class="cell-body">
-                    <div class="button-group">
-                        <button id="startBtn" class="btn btn-start" onclick="startPipeline()">
-                            ▶ Start Monitoring
-                        </button>
-                        <button id="stopBtn" class="btn btn-stop" onclick="stopPipeline()" disabled>
-                            ⏹ Stop Monitoring
-                        </button>
+        <!-- Main Content Grid -->
+        <main class="dashboard-grid">
+            
+            <!-- Left Column: Control & Stats -->
+            <div class="column column-left">
+                <!-- Control Panel -->
+                <section class="cell compact">
+                    <div class="cell-header">
+                        <h3>Control</h3>
                     </div>
-                </div>
-            </section>
-
-            <!-- Statistics Overview -->
-            <section class="cell">
-                <div class="cell-header">
-                    <h2>Statistics Overview</h2>
-                </div>
-                <div class="cell-body">
-                    <div class="stats-grid">
-                        <div class="stat-box">
-                            <div class="stat-value" id="totalPredictions">0</div>
-                            <div class="stat-label">Total Predictions</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-value" id="benignCount">0</div>
-                            <div class="stat-label">Benign Traffic</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-value" id="attackCount">0</div>
-                            <div class="stat-label">Attack Detected</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-value" id="attackRate">0%</div>
-                            <div class="stat-label">Attack Rate</div>
+                    <div class="cell-body">
+                        <div class="button-group">
+                            <button id="startBtn" class="btn btn-start" onclick="startPipeline()">▶ Start</button>
+                            <button id="stopBtn" class="btn btn-stop" onclick="stopPipeline()" disabled>⏹ Stop</button>
                         </div>
                     </div>
-                    <div class="class-breakdown">
-                        <h3>Breakdown by Class</h3>
-                        <div id="classStats"></div>
+                </section>
+
+                <!-- Key Stats (Quick View) -->
+                <section class="cell compact">
+                    <div class="cell-header">
+                        <h3>Quick Stats</h3>
                     </div>
-                </div>
-            </section>
-
-            <!-- Active Flows -->
-            <section class="cell">
-                <div class="cell-header">
-                    <h2>Active Flows</h2>
-                    <span class="flow-count" id="flowCount">0 active</span>
-                </div>
-                <div class="cell-body">
-                    <table class="table" id="flowsTable">
-                        <thead>
-                            <tr>
-                                <th>Source</th>
-                                <th>Destination</th>
-                                <th>Packets</th>
-                                <th>Time (s)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="no-data">
-                                <td colspan="4">No active flows</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- Recent Predictions -->
-            <section class="cell">
-                <div class="cell-header">
-                    <h2>Recent Predictions</h2>
-                    <span class="pred-count" id="predCount">0 predictions</span>
-                </div>
-                <div class="cell-body">
-                    <table class="table" id="predictionsTable">
-                        <thead>
-                            <tr>
-                                <th>Time</th>
-                                <th>Source</th>
-                                <th>Destination</th>
-                                <th>Prediction</th>
-                                <th>Confidence</th>
-                                <th>Packets</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="no-data">
-                                <td colspan="6">No predictions yet</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- Configuration -->
-            <section class="cell">
-                <div class="cell-header">
-                    <h2>Configuration</h2>
-                </div>
-                <div class="cell-body">
-                    <div class="config-grid">
-                        <div class="config-item">
-                            <span class="config-label">Network Interface:</span>
-                            <span class="config-value" id="configInterface">-</span>
-                        </div>
-                        <div class="config-item">
-                            <span class="config-label">Model Features:</span>
-                            <span class="config-value" id="configFeatures">-</span>
-                        </div>
-                        <div class="config-item">
-                            <span class="config-label">Flusher Interval:</span>
-                            <span class="config-value" id="configFlusher">-</span>
-                        </div>
-                        <div class="config-item">
-                            <span class="config-label">Idle Timeout:</span>
-                            <span class="config-value" id="configTimeout">-</span>
+                    <div class="cell-body">
+                        <div class="quick-stats">
+                            <div class="quick-stat">
+                                <div class="qs-label">Total</div>
+                                <div class="qs-value" id="totalPredictions">0</div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="qs-label">Benign</div>
+                                <div class="qs-value benign" id="benignCount">0</div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="qs-label">Attack</div>
+                                <div class="qs-value attack" id="attackCount">0</div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="qs-label">Rate</div>
+                                <div class="qs-value" id="attackRate">0%</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
+
+                <!-- Class Breakdown -->
+                <section class="cell compact">
+                    <div class="cell-header">
+                        <h3>Attack Classes</h3>
+                    </div>
+                    <div class="cell-body">
+                        <div id="classStats" class="class-list"></div>
+                    </div>
+                </section>
+
+                <!-- Configuration -->
+                <section class="cell compact">
+                    <div class="cell-header">
+                        <h3>Config</h3>
+                    </div>
+                    <div class="cell-body">
+                        <div class="config-grid compact">
+                            <div class="config-item">
+                                <span class="config-label">Interface</span>
+                                <span class="config-value" id="configInterface">-</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Features</span>
+                                <span class="config-value" id="configFeatures">-</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Flusher</span>
+                                <span class="config-value" id="configFlusher">-</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Timeout</span>
+                                <span class="config-value" id="configTimeout">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Middle Column: Active Flows -->
+            <div class="column column-middle">
+                <section class="cell">
+                    <div class="cell-header">
+                        <h3>Active Flows</h3>
+                        <span class="flow-count" id="flowCount">0</span>
+                    </div>
+                    <div class="cell-body">
+                        <div class="table-container">
+                            <table class="table table-compact" id="flowsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Source</th>
+                                        <th>Destination</th>
+                                        <th>Pkts</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="no-data">
+                                        <td colspan="4">No active flows</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column: Recent Predictions -->
+            <div class="column column-right">
+                <section class="cell">
+                    <div class="cell-header">
+                        <h3>Recent Predictions</h3>
+                        <span class="pred-count" id="predCount">0</span>
+                    </div>
+                    <div class="cell-body">
+                        <div class="table-container">
+                            <table class="table table-compact" id="predictionsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Source</th>
+                                        <th>Dest</th>
+                                        <th>Class</th>
+                                        <th>Conf</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="no-data">
+                                        <td colspan="5">No predictions yet</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
         </main>
-
-        <!-- Footer -->
-        <footer class="footer">
-            <p>Last updated: <span id="lastUpdate">-</span></p>
-            <p>Refresh interval: 2 seconds</p>
-        </footer>
     </div>
 
     <script src="./script.js"></script>
