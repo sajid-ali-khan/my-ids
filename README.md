@@ -29,62 +29,34 @@ A modern, production-ready Network Intrusion Detection System with real-time pac
 - Log aggregation and viewing
 - Configuration persistence
 
-## Quick Start
+## Installation
 
-### Option 1: pip Installation (Recommended)
+### Prerequisites
+- Python 3.8+
+- pipx (install with: `python3 -m pip install --user pipx`)
 
+### Install
 ```bash
-# Clone repository
-git clone https://github.com/sajid-ali-khan/my-ids.git
-cd my-ids
-
-# Install with pip
-pip install .
-
-# Configure and start
-ids-cli setup
-ids-cli start
-
-# Open dashboard
-# http://localhost:5000
+pipx install git+https://github.com/sajid-ali-khan/my-ids.git
 ```
 
-### Option 2: Bash Installation Script (Linux)
-
+Or from local directory:
 ```bash
-# Clone repository
 git clone https://github.com/sajid-ali-khan/my-ids.git
-cd my-ids
-
-# Run installer
-bash install.sh
-
-# Configure and start
-ids-cli setup
-ids-cli start
+cd ids-tool
+pipx install .
 ```
 
-### Option 3: Manual Installation
-
+### Usage
 ```bash
-# Clone repository
-git clone https://github.com/sajid-ali-khan/my-ids.git
-cd my-ids
+ids-cli setup
+ids-cli start
+ids-cli status
+```
 
-# Create virtual environment (optional)
-python3 -m venv myenv
-source myenv/bin/activate  # On Windows: myenv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Configure
-python3 ids_cli.py setup
-
-# Start server
-python3 ids_cli.py start
-
-# Access dashboard at http://localhost:5000
+### For root privileges
+```bash
+sudo $(which ids-cli) start
 ```
 
 ## CLI Commands
