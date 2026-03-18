@@ -24,7 +24,7 @@ setup(
     long_description_content_type='text/markdown',
     author='Your Name',
     author_email='your.email@example.com',
-    url='https://github.com/yourusername/ids-tool',
+    url='https://github.com/sajid-ali-khan/my-ids',
     license='MIT',
     
     packages=find_packages(),
@@ -88,8 +88,8 @@ setup(
     keywords='ids intrusion-detection network-security dashboard monitoring',
     
     project_urls={
-        'Bug Reports': 'https://github.com/yourusername/ids-tool/issues',
-        'Documentation': 'https://github.com/yourusername/ids-tool#readme',
-        'Source': 'https://github.com/yourusername/ids-tool',
+        'Bug Reports': 'https://github.com/sajid-ali-khan/my-ids/issues',
+        'Documentation': 'https://github.com/sajid-ali-khan/my-ids#readme',
+        'Source': 'https://github.com/sajid-ali-khan/my-ids',
     },
 )

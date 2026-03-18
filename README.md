@@ -35,8 +35,8 @@ A modern, production-ready Network Intrusion Detection System with real-time pac
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/ids-tool.git
-cd ids-tool
+git clone https://github.com/sajid-ali-khan/my-ids.git
+cd my-ids
 
 # Install with pip
 pip install .
@@ -53,8 +53,8 @@ ids-cli start
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/ids-tool.git
-cd ids-tool
+git clone https://github.com/sajid-ali-khan/my-ids.git
+cd my-ids
 
 # Run installer
 bash install.sh
@@ -68,8 +68,8 @@ ids-cli start
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/ids-tool.git
-cd ids-tool
+git clone https://github.com/sajid-ali-khan/my-ids.git
+cd my-ids
 
 # Create virtual environment (optional)
 python3 -m venv myenv
@@ -300,7 +300,7 @@ Contributions welcome! Please:
 ## Support
 
 For issues, questions, or suggestions:
-- Open an issue on GitHub
+- Open an issue on GitHub: https://github.com/sajid-ali-khan/my-ids/issues
 - Check documentation in README
 - Review logs: `ids-cli logs`
 

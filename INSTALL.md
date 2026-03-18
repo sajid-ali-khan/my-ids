@@ -65,8 +65,8 @@ Download and install from https://www.python.org/downloads/
 
 ```bash
 # Clone from GitHub (requires git)
-git clone https://github.com/yourusername/ids-tool.git
-cd ids-tool
+git clone https://github.com/sajid-ali-khan/my-ids.git
+cd my-ids
 
 # Or download and extract ZIP manually
 cd ids-tool
@@ -150,8 +150,8 @@ mkdir ids-deployment
 cd ids-deployment
 
 # Clone repo
-git clone https://github.com/yourusername/ids-tool.git
-cd ids-tool
+git clone https://github.com/sajid-ali-khan/my-ids.git
+cd my-ids
 
 # Setup venv
 python3 -m venv venv
@@ -189,8 +189,8 @@ ids-cli stop
 #### 1. Clone or Download Repository
 
 ```bash
-git clone https://github.com/yourusername/ids-tool.git
-cd ids-tool
+git clone https://github.com/sajid-ali-khan/my-ids.git
+cd my-ids
 
 # Or download and extract ZIP, then cd into it
 ```
@@ -286,8 +286,8 @@ Open in browser: **http://localhost:5000**
 
 ```bash
 # Clone and enter
-git clone https://github.com/yourusername/ids-tool.git
-cd ids-tool
+git clone https://github.com/sajid-ali-khan/my-ids.git
+cd my-ids
 
 # Run installer
 bash install.sh
@@ -337,8 +337,8 @@ ids-cli --help
 #### 1. Clone or Download Repository
 
 ```bash
-git clone https://github.com/yourusername/ids-tool.git
-cd ids-tool
+git clone https://github.com/sajid-ali-khan/my-ids.git
+cd my-ids
 ```
 
 #### 2. Create Virtual Environment
