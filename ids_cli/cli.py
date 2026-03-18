@@ -1,9 +1,34 @@
 """IDS CLI - Command Line Interface for managing the IDS server"""
 
 import click
+import requests
+import os
 from pathlib import Path
 from .config import ConfigManager
 from .daemon import DaemonManager
+
+MODEL_URL = "https://github.com/sajid-ali-khan/my-ids/releases/download/v1.0.0/random_forest_model.pkl"
+COLUMNS_URL = "https://github.com/sajid-ali-khan/my-ids/releases/download/v1.0.0/model_columns.joblib"
+
+
+def _download_file(url: str, dest_path: Path):
+    """Download a file with a progress bar."""
+    try:
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+        total_size = int(response.headers.get('content-length', 0))
+        
+        with open(dest_path, 'wb') as f, click.progressbar(
+            length=total_size,
+            label=f"Downloading {dest_path.name}"
+        ) as bar:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+                bar.update(len(chunk))
+        return True
+    except requests.exceptions.RequestException as e:
+        click.echo(f"\nError downloading {url}: {e}", err=True)
+        return False
 
 
 @click.group()
@@ -16,14 +41,30 @@ def cli():
 @cli.command()
 @click.option('--interface', '-i', default=None, help='Network interface (e.g., eth0, wlp3s0, en0)')
 @click.option('--port', '-p', type=int, default=None, help='Server port (default: 5000)')
-@click.option('--model-dir', '-m', default=None, help='Path to model directory')
+@click.option('--model-dir', '-m', default=None, help='Path to model directory (will be auto-set)')
 @click.option('--debug/--no-debug', default=False, help='Enable debug mode')
 def setup(interface, port, model_dir, debug):
-    """Initialize IDS configuration"""
+    """Initialize IDS configuration and download model files"""
     
     click.echo("🔧 IDS Configuration Setup")
     click.echo("-" * 50)
+
+    # --- Download Model Files ---
+    model_dest_dir = ConfigManager.CONFIG_DIR / 'model'
+    model_dest_dir.mkdir(exist_ok=True)
     
+    model_path = model_dest_dir / 'random_forest_model.pkl'
+    columns_path = model_dest_dir / 'model_columns.joblib'
+
+    click.echo("Downloading model files...")
+    if not _download_file(MODEL_URL, model_path):
+        exit(1)
+    if not _download_file(COLUMNS_URL, columns_path):
+        exit(1)
+    click.echo("✓ Model files downloaded successfully.")
+    click.echo("-" * 50)
+    
+    # --- Configure Settings ---
     config = ConfigManager.load()
     
     # Get user input for each setting
@@ -41,12 +82,8 @@ def setup(interface, port, model_dir, debug):
             type=int
         )
     
-    if model_dir is None:
-        model_dir = click.prompt(
-            'Model directory',
-            default=config.get('model_dir', './model'),
-            type=str
-        )
+    # Model directory is now automatically set
+    model_dir = str(model_dest_dir)
     
     # Update configuration
     new_config = {
@@ -64,6 +101,8 @@ def setup(interface, port, model_dir, debug):
         click.echo(f"  Debug:      {debug}")
     else:
         click.echo("\n✗ Failed to save configuration", err=True)
+
+
 
 
 @cli.command()
