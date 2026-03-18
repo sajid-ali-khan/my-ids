@@ -1,16 +1,14 @@
-# IDS Deployment Guide
+# IDS Installation Guide
 
-This guide covers both installation methods for the Network Intrusion Detection System.
+Complete installation guide for the Network Intrusion Detection System. Choose the method that works best for your environment.
 
 ## Table of Contents
 
 1. [Prerequisites](#prerequisites)
-2. [Installation Method 1: pip (Recommended)](#method-1-pip)
-3. [Installation Method 2: Bash Script (Linux)](#method-2-bash)
-4. [Installation Method 3: Manual](#method-3-manual)
-5. [Post-Installation](#post-installation)
-6. [Troubleshooting](#troubleshooting)
-7. [Uninstallation](#uninstallation)
+2. [Quick Start](#quick-start)
+3. [Installation Methods](#installation-methods)
+4. [Post-Installation](#post-installation)
+5. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -18,22 +16,12 @@ This guide covers both installation methods for the Network Intrusion Detection 
 
 ### System Requirements
 
-- **Python:** 3.8 or higher
-- **OS:** Linux, Windows, or macOS
-- **RAM:** 500MB+ available
+- **Python:** 3.8+ 
+- **OS:** Linux, Windows, macOS, WSL2
 - **Disk:** 200MB+ free space
-- **Network:** Root/Administrator privileges required for packet capture on Linux/macOS
+- **Root/Admin:** Required for packet capture (Linux/macOS)
 
-### Check Python Installation
-
-```bash
-# Check Python version
-python3 --version
-
-# Should output: Python 3.8.x or higher
-```
-
-If Python3 is not installed:
+### Install Python (if needed)
 
 **Ubuntu/Debian:**
 ```bash
@@ -41,624 +29,264 @@ sudo apt update
 sudo apt install python3 python3-pip python3-venv
 ```
 
-**macOS (with Homebrew):**
-```bash
-brew install python3
-```
+**macOS:** `brew install python3`
 
-**Windows:**
-Download and install from https://www.python.org/downloads/
+**Fedora/RHEL:** `sudo dnf install python3 python3-pip python3-venv`
+
+**Windows:** Download from https://www.python.org/downloads/
+
+### Verify
+
+```bash
+python3 --version    # Should be 3.8+
+pip --version        # Must exist
+python3 -m venv --help  # Must work
+```
 
 ---
 
-## Method 1: pip (Recommended)
+## Quick Start
 
-### Best For
-- Python developers
-- Cross-platform deployment (Windows, Linux, macOS)
-- Virtual environments
-- CI/CD pipelines
+### Linux (bash install.sh)
+```bash
+git clone https://github.com/sajid-ali-khan/my-ids.git && cd my-ids
+bash install.sh && source ~/.bashrc
+ids-cli setup && ids-cli start
+```
 
-### Installation Steps
+### macOS/Windows (pipx)
+```bash
+# Install pipx: brew install pipx  (macOS) or pip install --user pipx (Windows)
+git clone https://github.com/sajid-ali-khan/my-ids.git && cd my-ids
+pipx install . && ids-cli setup && ids-cli start
+```
 
-#### 1. Clone or Download Repository
+### Traditional (All platforms)
+```bash
+git clone https://github.com/sajid-ali-khan/my-ids.git && cd my-ids
+python3 -m venv venv && source venv/bin/activate
+pip install . && ids-cli setup && ids-cli start
+```
+
+---
+
+## Installation Methods
+
+### Method 1: bash install.sh (Linux - Easiest)
+
+### Method 1: bash install.sh (Linux - Easiest)
+
+**What it does:** Automatically creates venv, installs dependencies, creates global `ids-cli` command.
 
 ```bash
-# Clone from GitHub (requires git)
 git clone https://github.com/sajid-ali-khan/my-ids.git
 cd my-ids
-
-# Or download and extract ZIP manually
-cd ids-tool
-```
-
-#### 2. Create Virtual Environment (Optional but Recommended)
-
-```bash
-# Create venv
-python3 -m venv venv
-
-# Activate venv
-# On Linux/macOS:
-source venv/bin/activate
-
-# On Windows (PowerShell):
-.\venv\Scripts\Activate.ps1
-
-# On Windows (CMD):
-venv\Scripts\activate.bat
-```
-
-#### 3. Install Package
-
-```bash
-# Install in editable mode (good for development)
-pip install -e .
-
-# OR install normally
-pip install .
-```
-
-#### 4. Verify Installation
-
-```bash
-# The ids-cli command should now be available globally
-ids-cli --help
-
-# If command not found, add to PATH:
-# On Linux/macOS, add to ~/.bashrc or ~/.zshrc:
-export PATH="$HOME/.local/bin:$PATH"
-
-# Then reload shell:
-source ~/.bashrc  # or source ~/.zshrc
-```
-
-#### 5. Initialize Configuration
-
-```bash
+bash install.sh
+source ~/.bashrc
 ids-cli setup
-```
-
-This will guide you through:
-- Network interface selection
-- Port configuration
-- Model directory path
-- Debug settings
-
-#### 6. Start the Server
-
-```bash
 ids-cli start
 ```
 
-#### 7. Access Dashboard
+✅ Auto venv at `~/.ids/venv` • ✅ No PEP 668 errors • ✅ One command
 
-Open in browser: **http://localhost:5000**
+---
 
-### Advantages
-✅ Cross-platform (Windows, Linux, macOS)
-✅ Global `ids-cli` command
-✅ Easy dependency management
-✅ Professional installation
-✅ Works with pip and pipenv
+### Method 2: pipx (macOS/Windows/Linux - Professional)
 
-### Example Complete Session
+**What it does:** Professional approach with isolated virtual environment.
 
 ```bash
-# Create and enter directory
-mkdir ids-deployment
-cd ids-deployment
+# Install pipx first:
+# macOS: brew install pipx
+# Windows: pip install --user pipx
+# Ubuntu: sudo apt install pipx
 
-# Clone repo
 git clone https://github.com/sajid-ali-khan/my-ids.git
 cd my-ids
-
-# Setup venv
-python3 -m venv venv
-source venv/bin/activate
-
-# Install
-pip install .
-
-# Setup
+pipx install .
 ids-cli setup
-
-# Run
 ids-cli start
-
-# Monitor
-ids-cli status
-ids-cli logs
-
-# Stop
-ids-cli stop
 ```
+
+✅ Cross-platform • ✅ No PEP 668 errors • ✅ Easy uninstall: `pipx uninstall ids-tool`
 
 ---
 
-## Method 2: Bash Script (Linux)
+### Method 3: pip + venv (All Platforms - Traditional)
 
-### Best For
-- Linux sysadmins
-- Quick one-command setup
-- Users familiar with shell scripts
-- Automated deployment scripts
-
-### Installation Steps
-
-#### 1. Clone or Download Repository
+**What it does:** Manual virtual environment approach, full control.
 
 ```bash
 git clone https://github.com/sajid-ali-khan/my-ids.git
 cd my-ids
-
-# Or download and extract ZIP, then cd into it
-```
-
-#### 2. Run Installation Script
-
-```bash
-# Make executable (if not already)
-chmod +x install.sh
-
-# Run installer
-./install.sh
-
-# OR directly:
-bash install.sh
-```
-
-#### 3. Follow the Installer Prompts
-
-The script will:
-- ✓ Check Python 3 installation
-- ✓ Create `~/.ids/` config directory
-- ✓ Install all dependencies
-- ✓ Create `ids-cli` symlink
-- ✓ Update PATH in `.bashrc` and `.zshrc`
-- ✓ Test the installation
-
-#### 4. Reload Shell Configuration
-
-```bash
-# After installation, reload your shell:
-source ~/.bashrc   # for bash
-# OR
-source ~/.zshrc    # for zsh
-```
-
-#### 5. Verify Installation
-
-```bash
-# Should output help menu
-ids-cli --help
-
-# Or check location
-which ids-cli
-```
-
-#### 6. Initialize Configuration
-
-```bash
-ids-cli setup
-```
-
-#### 7. Start the Server
-
-```bash
-# May require sudo for packet capture
-sudo ids-cli start
-```
-
-#### 8. Access Dashboard
-
-Open in browser: **http://localhost:5000**
-
-### Installer Script Features
-
-- **Colored output** for easy reading
-- **Error handling** with informative messages
-- **Automatic PATH setup** (.bashrc/.zshrc)
-- **Root detection** (handles both user and system-wide install)
-- **Verification** at each step
-
-### What the Script Does
-
-```bash
-# 1. Verifies Python 3 is installed
-# 2. Creates ~/.ids/ directory
-# 3. Installs Python dependencies via pip
-# 4. Creates /usr/local/bin/ids-cli symlink (or ~/.local/bin/)
-# 5. Updates ~/.bashrc and ~/.zshrc for PATH
-# 6. Tests installation
-# 7. Prints setup guide
-```
-
-### Advantages
-✅ Linux-optimized
-✅ Minimal dependencies (only bash, python3, pip)
-✅ Automatic PATH configuration
-✅ Single command install
-✅ User-friendly colored output
-✅ Works with/without sudo
-
-### Example Complete Session
-
-```bash
-# Clone and enter
-git clone https://github.com/sajid-ali-khan/my-ids.git
-cd my-ids
-
-# Run installer
-bash install.sh
-
-# Reload shell
-source ~/.bashrc
-
-# Setup
-ids-cli setup
-
-# Run with sudo (for packet capture)
-sudo ids-cli start
-
-# Monitor
-ids-cli status
-```
-
-### Troubleshooting: PATH Not Updating
-
-If `ids-cli` is not found after running the installer:
-
-```bash
-# Manually add to PATH
-export PATH="/usr/local/bin:$PATH"
-
-# Or add to ~/.bashrc:
-echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.bashrc
-source ~/.bashrc
-
-# Verify
-which ids-cli
-ids-cli --help
-```
-
----
-
-## Method 3: Manual
-
-### Best For
-- Troubleshooting installation issues
-- Understanding the system
-- Running without installation
-- Development/debugging
-
-### Setup Steps
-
-#### 1. Clone or Download Repository
-
-```bash
-git clone https://github.com/sajid-ali-khan/my-ids.git
-cd my-ids
-```
-
-#### 2. Create Virtual Environment
-
-```bash
-# Create venv
-python3 -m venv myenv
-
-# Activate
-# Linux/macOS:
-source myenv/bin/activate
-
-# Windows:
-myenv\Scripts\activate
-```
-
-#### 3. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-#### 4. Create Config Directory
-
-```bash
+python3 -m venv venv
+source venv/bin/activate        # Windows: .\venv\Scripts\activate.ps1
+pip install .
 mkdir -p ~/.ids
+ids-cli setup
+ids-cli start
 ```
 
-#### 5. Run Directly
+✅ Standard Python approach • ✅ Project-specific venv • ✅ Cross-platform
+
+**Note:** Must activate venv each time: `source venv/bin/activate`
+
+---
+
+### Method 4: Manual (Testing/Troubleshooting)
+
+**What it does:** No installation, direct execution.
 
 ```bash
-# Use Python directly (no symlink needed)
+git clone https://github.com/sajid-ali-khan/my-ids.git
+cd my-ids
+python3 -m venv myenv
+source myenv/bin/activate
+pip install -r requirements.txt
+mkdir -p ~/.ids
 python3 ids_cli.py setup
-
-# Start server
 python3 ids_cli.py start
-
-# Status
-python3 ids_cli.py status
-
-# Stop
-python3 ids_cli.py stop
-
-# Logs
-python3 ids_cli.py logs
-
-# View help
-python3 ids_cli.py --help
 ```
 
-### Advantages
-✅ No installation needed
-✅ Easy to test/debug
-✅ Works anywhere
-✅ Full control over environment
+✅ No installation • ✅ Easy testing • ✅ No cleanup needed
 
-### Disadvantages
-❌ Must use `python3 ids_cli.py` every time
-❌ Virtual environment must be activated
-❌ No system-wide command
+**Note:** Use `python3 ids_cli.py` instead of `ids-cli` command
 
 ---
 
 ## Post-Installation
 
-### Configuration
-
-After choosing your installation method, configure the IDS:
+### Configure
 
 ```bash
-# Run setup (interactive)
 ids-cli setup
+# Prompts for: interface, port, model directory
 ```
 
-Or manually edit `~/.ids/config.json`:
+### Find Network Interface
 
-```json
-{
-  "interface": "eth0",
-  "port": 5000,
-  "model_dir": "./model",
-  "debug": false,
-  "host": "0.0.0.0"
-}
-```
-
-### Network Interface Selection
-
-Find your network interface:
-
-**Linux:**
 ```bash
-# List interfaces
-ip link show
-# or
-ifconfig
+# Linux/macOS:
+ip link show      # or: ifconfig
 
-# Common interfaces: eth0, wlan0, enp0s3
-```
-
-**Windows (PowerShell):**
-```powershell
+# Windows (PowerShell):
 Get-NetIPConfiguration
-# or
-ipconfig
 ```
 
-**macOS:**
-```bash
-# List interfaces
-ifconfig | grep "^en"
-# Common: en0, en1
-```
-
-### First Run
+### Start & Access
 
 ```bash
-# Setup
-ids-cli setup
-
-# Start
 ids-cli start
+# Open: http://localhost:5000
+```
 
-# Check status
+### Verify Working
+
+```bash
 ids-cli status
-
-# View dashboard
-# Open browser to: http://localhost:5000
-
-# View logs
 ids-cli logs
-
-# Stop
-ids-cli stop
+# Generate traffic: ping 8.8.8.8
+# Dashboard should show network activity
 ```
 
 ---
 
 ## Troubleshooting
 
-### Issue: "ids-cli command not found"
+### "ids-cli: command not found"
 
-**Solution 1: Activate virtual environment**
 ```bash
+# bash install.sh:
+source ~/.bashrc
+
+# pip + venv:
 source venv/bin/activate
-ids-cli --help
+
+# pipx:
+pipx list  # Verify installed
 ```
 
-**Solution 2: Add to PATH**
+### "externally-managed-environment" Error
+
+Use any of these methods:
+1. **bash install.sh** → Auto creates venv
+2. **pipx install .** → Auto creates venv  
+3. **Manual venv:** `python3 -m venv venv && source venv/bin/activate && pip install .`
+
+### "python3-venv not installed"
+
 ```bash
-export PATH="$HOME/.local/bin:$PATH"
-ids-cli --help
+# Ubuntu/Debian:
+sudo apt install python3-venv
+
+# Fedora/RHEL:
+sudo dnf install python3-venv
 ```
 
-**Solution 3: Use full path**
+### "Permission denied" on Linux
+
 ```bash
-python3 ids_cli.py --help
+sudo ids-cli start    # For packet capture
 ```
 
-### Issue: "Permission denied" on Linux
+### Port Already in Use
 
-**Solution: Run with sudo**
 ```bash
-# Packet capture requires root
-sudo ids-cli start
-
-# Or add user to pcap group (if available)
-sudo usermod -aG pcap $USER
+lsof -i :5000         # Find what's using it
+ids-cli setup         # Reconfigure with different port
 ```
 
-### Issue: Port 5000 already in use
+### Dashboard Won't Load
 
-**Solution 1: Change port in config**
 ```bash
-# Edit ~/.ids/config.json
-# Change "port": 5000 to "port": 8080
-
-# Or run setup again
-ids-cli setup
+ids-cli status        # Check if running
+ids-cli logs          # Check errors
+curl http://localhost:5000  # Test manually
 ```
 
-**Solution 2: Find and kill process using port**
+### No Network Activity
+
 ```bash
-# Linux/macOS:
-lsof -i :5000
-kill -9 <PID>
-
-# Windows (PowerShell):
-Get-Process -Id (Get-NetTCPConnection -LocalPort 5000).OwningProcess
-```
-
-### Issue: Dashboard not loading
-
-**Solution 1: Check server status**
-```bash
-ids-cli status
-```
-
-**Solution 2: Check logs**
-```bash
-ids-cli logs -n 50
-```
-
-**Solution 3: Check firewall**
-```bash
-# Linux:
-sudo ufw status
-sudo ufw allow 5000/tcp
-
-# macOS:
-# System Preferences → Security & Privacy → Firewall Options
-```
-
-### Issue: No predictions showing in dashboard
-
-**Solution 1: Verify network interface**
-```bash
-ids-cli config
-
-# Check interface is correct and has traffic
-# Linux: sudo tcpdump -i <interface> -c 10
-```
-
-**Solution 2: Generate test traffic**
-```bash
-# Ping a server to generate traffic
-ping google.com
-
-# Run while server is running
-```
-
-### Issue: Model file not found
-
-**Solution: Verify model directory**
-```bash
-# Check config
-ids-cli config
-
-# List model files
-ls -la ./model/
-
-# Should contain:
-# - random_forest_model.pkl
-# - model_columns.joblib
+ids-cli config        # Verify interface
+ping 8.8.8.8         # Generate traffic while server running
+ids-cli logs          # Check logs
 ```
 
 ---
 
 ## Uninstallation
 
-### After pip Installation
-
+### bash install.sh
 ```bash
-# Deactivate virtual environment
+sudo rm /usr/local/bin/ids-cli
+rm -rf ~/.ids/
+```
+
+### pipx
+```bash
+pipx uninstall ids-tool
+```
+
+### pip + venv
+```bash
 deactivate
-
-# Remove installed package
-pip uninstall ids-tool
-
-# Remove virtual environment
 rm -rf venv/
-
-# Remove config directory
 rm -rf ~/.ids/
-
-# Remove symlink (if system-wide install)
-sudo rm /usr/local/bin/ids-cli
-```
-
-### After Bash Script Installation
-
-```bash
-# Remove symlink
-sudo rm /usr/local/bin/ids-cli
-# or
-rm ~/.local/bin/ids-cli
-
-# Remove config directory
-rm -rf ~/.ids/
-
-# Remove project directory
-rm -rf ids-tool/
-
-# Clean Python packages (optional)
-pip uninstall -r requirements.txt
-```
-
-### Clean Up (All Methods)
-
-```bash
-# Remove cached Python files
-find . -type d -name __pycache__ -exec rm -r {} +
-find . -type f -name "*.pyc" -delete
-
-# Remove logs
-rm -rf ~/.ids/server.log
-
-# List remaining files
-ls -la ~/.ids/
 ```
 
 ---
 
-## Next Steps
+## Summary
 
-1. **Configure:** `ids-cli setup`
-2. **Start:** `ids-cli start`
-3. **Monitor:** Open http://localhost:5000
-4. **Stop:** `ids-cli stop`
-
-## Support
-
-For issues or questions:
-- Check logs: `ids-cli logs`
-- View config: `ids-cli config`
-- Get help: `ids-cli info`
-- See README.md for detailed documentation
+| Method | Installation | Setup | Global Command | Best For |
+|--------|--------------|-------|-----------------|----------|
+| bash | `bash install.sh` | Auto | ✅ Yes | Linux users |
+| pipx | `pipx install .` | Auto | ✅ Yes | macOS/Windows |
+| venv | `pip install .` | Manual | ✅ (when active) | Developers |
+| Manual | None | Manual | ❌ No | Testing |
 
 ---
 
-**Installation Guide Complete!** 🎉
+**All methods work reliably and without PEP 668 errors!** ✅
 
-Your IDS is now ready for deployment. Choose the installation method that best fits your environment and workflow.
+Start with your preferred method and refer back to [Troubleshooting](#troubleshooting) if you hit any issues.

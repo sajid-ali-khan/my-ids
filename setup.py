@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
 Setup script for IDS CLI package
-Allows installation via: pip install .
+Installation Methods (choose one):
+  1. pipx install .           (recommended, auto venv handling)
+  2. python3 -m venv venv && source venv/bin/activate && pip install .
+  3. bash install.sh          (Linux, auto venv handling)
 """
 
 from setuptools import setup, find_packages

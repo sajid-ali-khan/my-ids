@@ -77,32 +77,71 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 print_step "Project directory: $SCRIPT_DIR"
 
-# Step 4: Create config directory
-print_step "Creating configuration directory..."
+# Step 4: Create directories
+print_step "Creating configuration and virtual environment..."
 mkdir -p "$HOME/.ids"
 print_success "Configuration directory created at ~/.ids"
 
-# Step 5: Install dependencies
-print_step "Installing Python dependencies..."
-python3 -m pip install --quiet --upgrade pip setuptools wheel 2>/dev/null || true
-python3 -m pip install --quiet -r requirements.txt
-print_success "Dependencies installed"
+# Step 5: Create virtual environment
+VENV_DIR="$HOME/.ids/venv"
+print_step "Creating Python virtual environment at ~/.ids/venv..."
 
-# Step 6: Create CLI symlink
+if python3 -m venv "$VENV_DIR" 2>&1; then
+    print_success "Virtual environment created"
+else
+    print_error "Failed to create virtual environment"
+    echo "Try installing: sudo apt install python3-venv"
+    exit 1
+fi
+
+# Step 6: Install dependencies in virtual environment
+print_step "Installing Python dependencies..."
+"$VENV_DIR/bin/pip" install --quiet --upgrade pip setuptools wheel 2>/dev/null || true
+if "$VENV_DIR/bin/pip" install --quiet -r requirements.txt 2>&1; then
+    print_success "Dependencies installed"
+else
+    print_error "Failed to install dependencies"
+    exit 1
+fi
+
+# Step 7: Create CLI symlink
 print_step "Setting up CLI command..."
 mkdir -p "$INSTALL_PREFIX/bin"
 
-# Create wrapper script
+# Create wrapper script that activates venv and runs the CLI
 cat > "$INSTALL_PREFIX/bin/ids-cli" << 'EOF'
 #!/bin/bash
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$SCRIPT_DIR"
-python3 ids_cli.py "$@"
+# IDS CLI wrapper - activates venv and runs the tool
+VENV_DIR="$HOME/.ids/venv"
+SCRIPT_DIR="$HOME/.ids/project"
+
+# Try to find project directory
+if [ ! -d "$SCRIPT_DIR" ]; then
+    # Try alternative locations
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    SCRIPT_DIR="${SCRIPT_DIR%/bin}"
+fi
+
+# Source venv to activate Python environment
+if [ -f "$VENV_DIR/bin/activate" ]; then
+    source "$VENV_DIR/bin/activate"
+    cd "$SCRIPT_DIR" 2>/dev/null || true
+    python3 ids_cli.py "$@"
+else
+    echo "Error: Virtual environment not found at $VENV_DIR"
+    echo "Please run the installer again"
+    exit 1
+fi
 EOF
 
 chmod +x "$INSTALL_PREFIX/bin/ids-cli"
 
-# Add to PATH if necessary
+# Step 8: Save project directory path
+print_step "Saving project directory path..."
+echo "$SCRIPT_DIR" > "$HOME/.ids/project_dir"
+print_success "Project path saved to ~/.ids/project_dir"
+
+# Step 9: Add to PATH if necessary
 if [[ ":$PATH:" != *":$INSTALL_PREFIX/bin:"* ]]; then
     print_warning "Adding $INSTALL_PREFIX/bin to PATH"
     if [ -f "$HOME/.bashrc" ]; then
@@ -116,9 +155,9 @@ if [[ ":$PATH:" != *":$INSTALL_PREFIX/bin:"* ]]; then
     export PATH="$INSTALL_PREFIX/bin:$PATH"
 fi
 
-print_success "CLI symlink created at $INSTALL_PREFIX/bin/ids-cli"
+print_success "CLI command created at $INSTALL_PREFIX/bin/ids-cli"
 
-# Step 7: Test installation
+# Step 10: Test installation
 print_step "Testing installation..."
 if command -v ids-cli &> /dev/null || [ -f "$INSTALL_PREFIX/bin/ids-cli" ]; then
     print_success "CLI command is available"
