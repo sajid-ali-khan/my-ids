@@ -51,7 +51,7 @@ def setup(interface, port, model_dir, debug):
 
     # --- Download Model Files ---
     model_dest_dir = ConfigManager.CONFIG_DIR / 'model'
-    model_dest_dir.mkdir(exist_ok=True)
+    model_dest_dir.mkdir(parents=True, exist_ok=True)
     
     model_path = model_dest_dir / 'random_forest_model.pkl'
     columns_path = model_dest_dir / 'model_columns.joblib'
