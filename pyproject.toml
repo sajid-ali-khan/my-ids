@@ -35,8 +35,12 @@ dependencies = [
 [project.scripts]
 ids-cli = "ids_cli.cli:main"
 
-[tool.setuptools.packages.find]
-include = ["web*", "ids_api*", "ids_cli*", "ids_core*"]
-
 [tool.setuptools]
+include-package-data = true
 py-modules = ["run_server", "flow", "capture"]
+
+[tool.setuptools.packages.find]
+include = ["ids_api*", "ids_cli*", "ids_core*", "web*"]
+
+[tool.setuptools.package-data]
+web = ["*.html", "*.css", "*.js"]
