@@ -3,15 +3,13 @@
 import os
 from flask import Flask, jsonify, render_template
 from flask_cors import CORS
-from ids_core import PipelineManager
 
 
-def create_app(model_dir: str = './model', interface: str = 'wlp3s0'):
+def create_app(pipeline):
     """Create and configure Flask application.
     
     Args:
-        model_dir: Path to model directory
-        interface: Network interface to sniff on
+        pipeline: PipelineManager instance
         
     Returns:
         Flask app instance
@@ -33,18 +31,6 @@ def create_app(model_dir: str = './model', interface: str = 'wlp3s0'):
                 static_folder=static_folder,
                 static_url_path='/')
     CORS(app)
-    
-    # Initialize PipelineManager
-    try:
-        pipeline = PipelineManager(
-            model_dir=model_dir,
-            network_interface=interface,
-            flusher_interval=20,
-            idle_timeout=30,
-            max_history=100
-        )
-    except Exception as e:
-        raise RuntimeError(f"Failed to initialize PipelineManager: {e}")
     
     # Store pipeline in app context for routes to access
     app.pipeline = pipeline
