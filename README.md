@@ -33,7 +33,7 @@ A modern, production-ready Network Intrusion Detection System with real-time pac
 
 ### Prerequisites
 - Python 3.8+
-- pipx (install with: `python3 -m pip install --user pipx`)
+- pipx (install with: `sudo apt install pipx`)
 
 ### Install
 ```bash
@@ -118,8 +118,7 @@ ids-tool/
 ├── capture.py             # Packet capture logic
 ├── run_server.py          # Flask server launcher
 ├── ids_cli.py             # CLI entry point
-├── setup.py               # Package setup
-├── install.sh             # Bash installer
+├── pyproject.toml         # Package definition (pipx)
 └── requirements.txt       # Python dependencies
 ```
 

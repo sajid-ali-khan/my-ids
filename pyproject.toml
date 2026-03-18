@@ -26,7 +26,6 @@ dependencies = [
     "scapy==2.7.0",
     "scikit-learn==1.6.1",
     "scipy==1.17.1",
-    "setuptools==82.0.1",
     "six==1.17.0",
     "threadpoolctl==3.6.0",
     "urllib3==2.6.3",
@@ -34,4 +33,7 @@ dependencies = [
 ]
 
 [project.scripts]
-ids-cli = "ids_cli:main"  # Assumes you have a main() function in ids_cli.py
+ids-cli = "ids_cli.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["web*", "ids_api*", "ids_cli*", "ids_core*"]
