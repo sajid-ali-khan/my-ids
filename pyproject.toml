@@ -37,3 +37,6 @@ ids-cli = "ids_cli.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["web*", "ids_api*", "ids_cli*", "ids_core*"]
+
+[tool.setuptools]
+py-modules = ["run_server"]
