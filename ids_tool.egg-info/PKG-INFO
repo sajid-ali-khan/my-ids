@@ -1,0 +1,371 @@
+Metadata-Version: 2.4
+Name: ids-tool
+Version: 1.0.0
+Summary: Network Intrusion Detection System with Web Dashboard and CLI
+Home-page: https://github.com/yourusername/ids-tool
+Author: Your Name
+Author-email: your.email@example.com
+License: MIT
+Project-URL: Bug Reports, https://github.com/yourusername/ids-tool/issues
+Project-URL: Documentation, https://github.com/yourusername/ids-tool#readme
+Project-URL: Source, https://github.com/yourusername/ids-tool
+Keywords: ids intrusion-detection network-security dashboard monitoring
+Classifier: Development Status :: 4 - Beta
+Classifier: Environment :: Console
+Classifier: Intended Audience :: System Administrators
+Classifier: Intended Audience :: Information Technology
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: System :: Monitoring
+Classifier: Topic :: System :: Networking :: Monitoring
+Classifier: Topic :: Security
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: numpy>=2.0.0
+Requires-Dist: pandas>=3.0.0
+Requires-Dist: scikit-learn>=1.6.0
+Requires-Dist: scapy>=2.7.0
+Requires-Dist: joblib>=1.5.0
+Requires-Dist: flask>=2.3.0
+Requires-Dist: flask-cors>=4.0.0
+Requires-Dist: requests>=2.30.0
+Requires-Dist: click>=8.0.0
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: project-url
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+# Network Intrusion Detection System (IDS)
+
+A modern, production-ready Network Intrusion Detection System with real-time packet analysis, machine learning-based classification, and an intuitive web dashboard.
+
+## Features
+
+✨ **Network Monitoring**
+- Real-time packet capture using Scapy
+- Flow-based analysis with automatic timeout management
+- Support for Linux, Windows, and macOS
+
+🤖 **Machine Learning**
+- Random Forest classifier trained on CICIDS2017/2018 dataset
+- 52-feature extraction from network flows
+- 7-class classification (benign + 6 attack types)
+- 98%+ accuracy on test data
+
+📊 **Web Dashboard**
+- Real-time statistics and predictions
+- Active flow monitoring
+- Attack class breakdown
+- Responsive 3-column grid layout
+- 2-second auto-refresh via AJAX polling
+
+🔧 **CLI Tool**
+- Cross-platform command-line interface (Linux, Windows, macOS)
+- Easy setup with `ids-cli setup`
+- Background process management
+- Log aggregation and viewing
+- Configuration persistence
+
+## Quick Start
+
+### Option 1: pip Installation (Recommended)
+
+```bash
+# Clone repository
+git clone https://github.com/yourusername/ids-tool.git
+cd ids-tool
+
+# Install with pip
+pip install .
+
+# Configure and start
+ids-cli setup
+ids-cli start
+
+# Open dashboard
+# http://localhost:5000
+```
+
+### Option 2: Bash Installation Script (Linux)
+
+```bash
+# Clone repository
+git clone https://github.com/yourusername/ids-tool.git
+cd ids-tool
+
+# Run installer
+bash install.sh
+
+# Configure and start
+ids-cli setup
+ids-cli start
+```
+
+### Option 3: Manual Installation
+
+```bash
+# Clone repository
+git clone https://github.com/yourusername/ids-tool.git
+cd ids-tool
+
+# Create virtual environment (optional)
+python3 -m venv myenv
+source myenv/bin/activate  # On Windows: myenv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure
+python3 ids_cli.py setup
+
+# Start server
+python3 ids_cli.py start
+
+# Access dashboard at http://localhost:5000
+```
+
+## CLI Commands
+
+```bash
+# Show welcome and help
+ids-cli info
+
+# Configure the IDS
+ids-cli setup
+
+# Start the server
+ids-cli start
+
+# Stop the server
+ids-cli stop
+
+# Check server status
+ids-cli status
+
+# View recent logs
+ids-cli logs [-n 50]
+
+# Show current configuration
+ids-cli config
+
+# Reset to default configuration
+ids-cli reset
+
+# Clear log file
+ids-cli clear-logs
+```
+
+## Project Structure
+
+```
+ids-tool/
+├── ids_core/              # Core IDS pipeline
+│   ├── pipeline.py        # PipelineManager (threading, ML inference)
+│   ├── model_loader.py    # Model and feature loading
+│   └── __init__.py
+├── ids_api/               # Flask REST API
+│   ├── app.py             # Flask app factory
+│   ├── routes.py          # 12 API endpoints
+│   └── __init__.py
+├── ids_cli/               # CLI tool
+│   ├── cli.py             # Click commands
+│   ├── config.py          # Configuration manager
+│   ├── daemon.py          # Process manager
+│   └── __init__.py
+├── web/                   # Web dashboard
+│   ├── index.html         # Dashboard UI
+│   ├── style.css          # Styling (Jupyter-like)
+│   └── script.js          # Real-time updates
+├── model/                 # ML model files
+│   ├── random_forest_model.pkl
+│   └── model_columns.joblib
+├── flow.py                # Flow class with feature extraction
+├── capture.py             # Packet capture logic
+├── run_server.py          # Flask server launcher
+├── ids_cli.py             # CLI entry point
+├── setup.py               # Package setup
+├── install.sh             # Bash installer
+└── requirements.txt       # Python dependencies
+```
+
+## Architecture
+
+### Three-Tier Design
+
+1. **Data Acquisition (Sniffer Thread)**
+   - Captures packets from specified network interface
+   - Groups packets into bidirectional flows
+   - Detects flow termination (TCP FIN/RST)
+
+2. **Stream Processing (Flusher Thread)**
+   - Monitors flow idle time (30-second timeout)
+   - Removes stale flows periodically (20-second interval)
+   - Prepares data for classification
+
+3. **Classification (Classifier Thread)**
+   - Extracts 52 features from completed flows
+   - Runs ML model predictions
+   - Stores results with confidence scores
+
+### Multi-Threading Safety
+- Thread-safe data structures with RLocks
+- Lock-free deque for prediction history
+- Atomic operations for statistics
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/start` | POST | Start pipeline |
+| `/api/stop` | POST | Stop pipeline |
+| `/api/status` | GET | Pipeline status |
+| `/api/predictions` | GET | Recent predictions (paginated) |
+| `/api/flows` | GET | Active flows list |
+| `/api/stats` | GET | Statistics breakdown |
+| `/api/summary` | GET | Combined summary (used by dashboard) |
+| `/api/config` | GET | Configuration info |
+| `/api/model` | GET | Model metadata |
+| `/health` | GET | Health check |
+| `/` | GET | Serve dashboard |
+
+## Configuration
+
+Configuration stored in `~/.ids/`:
+- `config.json` - User settings (interface, port, model_dir, debug)
+- `server.pid` - Current process ID
+- `server.log` - Activity logs with timestamps
+
+Default settings:
+```json
+{
+  "interface": "eth0",
+  "port": 5000,
+  "model_dir": "./model",
+  "debug": false,
+  "host": "0.0.0.0"
+}
+```
+
+## System Requirements
+
+- **Python:** 3.8 or higher
+- **Memory:** 500MB+ (depends on traffic volume)
+- **Storage:** 200MB+ for model and logs
+- **OS:** Linux, Windows, macOS (with administrative/root privileges for packet capture on Linux)
+
+## Dependencies
+
+- `numpy` - Numerical computing
+- `pandas` - Data analysis
+- `scikit-learn` - Machine learning
+- `scapy` - Packet manipulation
+- `flask` - Web framework
+- `click` - CLI framework
+
+See `requirements.txt` for specific versions.
+
+## Model Information
+
+- **Algorithm:** Random Forest (100 estimators)
+- **Dataset:** CICIDS2017/2018 (network traffic)
+- **Features:** 52 derived from packet flows
+- **Classes:** 7 (Normal + 6 attack types)
+- **Training Size:** 100K+ samples
+- **Validation Accuracy:** 98.5%+
+
+## Troubleshooting
+
+### Server won't start
+```bash
+# Check logs
+ids-cli logs
+
+# Verify configuration
+ids-cli config
+
+# Check if port is in use
+lsof -i :5000  # macOS/Linux
+netstat -ano | findstr :5000  # Windows
+```
+
+### Dashboard not loading
+- Ensure server is running: `ids-cli status`
+- Check firewall settings
+- Verify port is accessible: `http://localhost:5000`
+
+### No predictions showing
+```bash
+# Check if network interface is correct
+ids-cli config
+
+# Verify interface has traffic
+# Linux: sudo tcpdump -i wlp3s0
+# Windows: Get-NetIPConfiguration (PowerShell)
+
+# Check logs for errors
+ids-cli logs
+```
+
+### Permission denied error
+- On Linux, packet capture requires root: `sudo ids-cli start`
+- Or use: `sudo python3 ids_cli.py start`
+
+## Future Enhancements
+
+- [ ] WebSocket real-time updates (replace polling)
+- [ ] Database backend (persistent predictions storage)
+- [ ] Advanced filtering and search
+- [ ] Custom alert rules and thresholds
+- [ ] Integration with external logging (ELK, Splunk)
+- [ ] Windows Task Scheduler integration
+- [ ] Linux systemd integration
+- [ ] Docker containerization
+- [ ] Kubernetes Helm charts
+
+## License
+
+MIT License - See LICENSE file for details
+
+## Contributing
+
+Contributions welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## Support
+
+For issues, questions, or suggestions:
+- Open an issue on GitHub
+- Check documentation in README
+- Review logs: `ids-cli logs`
+
+## Disclaimer
+
+This is an educational/research tool. While designed for production use, users are responsible for:
+- Verifying threat detections
+- Maintaining network security
+- Complying with local laws and regulations
+- Securing configuration and logs
+
+---
+
+**Built with Python, Scapy, scikit-learn, and Flask**
+
+Created as a Final Year Project - Network Intrusion Detection System

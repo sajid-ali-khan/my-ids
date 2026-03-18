@@ -1,0 +1,9 @@
+numpy>=2.0.0
+pandas>=3.0.0
+scikit-learn>=1.6.0
+scapy>=2.7.0
+joblib>=1.5.0
+flask>=2.3.0
+flask-cors>=4.0.0
+requests>=2.30.0
+click>=8.0.0
