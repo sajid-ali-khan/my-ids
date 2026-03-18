@@ -60,26 +60,28 @@ class DaemonManager:
             server_script = str(Path(self.project_root) / 'run_server.py')
             
             # Start server process
-            if sys.platform == 'win32':
-                # Windows: use CREATE_NEW_PROCESS_GROUP to allow independent termination
-                proc = subprocess.Popen(
-                    [python_exe, server_script],
-                    env=env,
-                    cwd=self.project_root,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == 'win32' else 0
-                )
-            else:
-                # Unix: use setsid to create new session
-                proc = subprocess.Popen(
-                    [python_exe, server_script],
-                    env=env,
-                    cwd=self.project_root,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                    preexec_fn=os.setsid if hasattr(os, 'setsid') else None
-                )
+            log_file = ConfigManager.LOG_FILE
+            with open(log_file, 'ab') as log:
+                if sys.platform == 'win32':
+                    # Windows: use CREATE_NEW_PROCESS_GROUP to allow independent termination
+                    proc = subprocess.Popen(
+                        [python_exe, server_script],
+                        env=env,
+                        cwd=self.project_root,
+                        stdout=log,
+                        stderr=log,
+                        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
+                    )
+                else:
+                    # Unix: use setsid to create new session
+                    proc = subprocess.Popen(
+                        [python_exe, server_script],
+                        env=env,
+                        cwd=self.project_root,
+                        stdout=log,
+                        stderr=log,
+                        preexec_fn=os.setsid if hasattr(os, 'setsid') else None
+                    )
             
             # Give process time to start
             time.sleep(0.5)
