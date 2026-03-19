@@ -9,13 +9,9 @@ from typing import Dict, Any, Optional
 class ConfigManager:
     """Manages IDS configuration stored in user home directory."""
     
-    # Default configuration directory
-    # Use system-wide PID location when running as root on Unix
-    if hasattr(os, 'geteuid') and os.geteuid() == 0:
-        CONFIG_DIR = Path('/var/run/ids')
-    else:
-        CONFIG_DIR = Path.home() / '.ids'
-    
+    # Always store configuration in user's home directory
+    # This ensures consistency whether running as root or not
+    CONFIG_DIR = Path.home() / '.ids'
     CONFIG_FILE = CONFIG_DIR / 'config.json'
     PID_FILE = CONFIG_DIR / 'server.pid'
     LOG_FILE = CONFIG_DIR / 'server.log'
