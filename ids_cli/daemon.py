@@ -14,17 +14,9 @@ from .config import ConfigManager
 class DaemonManager:
     """Manages the IDS Flask server as a background process."""
     
-    def __init__(self, project_root: str = None):
-        """Initialize daemon manager.
-        
-        Args:
-            project_root: Path to project root (auto-detected if None)
-        """
-        if project_root is None:
-            # Auto-detect project root (parent of ids_cli directory)
-            self.project_root = str(Path(__file__).parent.parent)
-        else:
-            self.project_root = str(project_root)
+    def __init__(self):
+        """Initialize daemon manager."""
+        pass  # No project_root needed anymore
     
     def start(self) -> Tuple[bool, str]:
         """Start the IDS server as background process.
@@ -43,41 +35,31 @@ class DaemonManager:
         model_dir = config.get('model_dir', './model')
         
         try:
-            # Resolve absolute paths
-            abs_model_dir = str(Path(model_dir).resolve()) \
-                if Path(model_dir).is_absolute() \
-                else str(Path(self.project_root) / model_dir)
-            
             # Prepare environment
             env = os.environ.copy()
             env['IDS_INTERFACE'] = interface
             env['IDS_PORT'] = str(port)
-            env['IDS_MODEL_DIR'] = abs_model_dir
+            env['IDS_MODEL_DIR'] = model_dir  # Already absolute from setup
             env['PYTHONUNBUFFERED'] = '1'
             
             # Determine Python executable
             python_exe = sys.executable
-            server_script = str(Path(self.project_root) / 'run_server.py')
             
-            # Start server process
+            # Start server using -m to run the module
             log_file = ConfigManager.LOG_FILE
             with open(log_file, 'ab') as log:
                 if sys.platform == 'win32':
-                    # Windows: use CREATE_NEW_PROCESS_GROUP to allow independent termination
                     proc = subprocess.Popen(
-                        [python_exe, server_script],
+                        [python_exe, '-m', 'run_server'],  # Changed this
                         env=env,
-                        cwd=self.project_root,
                         stdout=log,
                         stderr=log,
                         creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
                     )
                 else:
-                    # Unix: use setsid to create new session
                     proc = subprocess.Popen(
-                        [python_exe, server_script],
+                        [python_exe, '-m', 'run_server'],  # Changed this
                         env=env,
-                        cwd=self.project_root,
                         stdout=log,
                         stderr=log,
                         preexec_fn=os.setsid if hasattr(os, 'setsid') else None
