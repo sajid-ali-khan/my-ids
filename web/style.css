@@ -387,9 +387,8 @@ body {
 .table.table-compact td {
     padding: 6px 8px;
     border-bottom: 1px solid #f5f5f5;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .table tbody tr:hover {

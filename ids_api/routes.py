@@ -1,6 +1,7 @@
 """Flask API routes for IDS pipeline"""
 
 from flask import Blueprint, jsonify, current_app, request
+from .dns_utils import get_hostname
 
 api_bp = Blueprint('api', __name__)
 
@@ -121,6 +122,11 @@ def get_predictions():
     
     predictions = pipeline.get_predictions(limit=limit)
     
+    # Add domain names for source and destination IPs
+    for pred in predictions:
+        pred['src_domain'] = get_hostname(pred.get('src_ip', ''))
+        pred['dst_domain'] = get_hostname(pred.get('dst_ip', ''))
+    
     return jsonify({
         'count': len(predictions),
         'predictions': predictions
@@ -149,6 +155,11 @@ def get_flows():
     """
     pipeline = current_app.pipeline
     flows = pipeline.get_active_flows()
+    
+    # Add domain names for source and destination IPs
+    for flow in flows:
+        flow['src_domain'] = get_hostname(flow.get('src_ip', ''))
+        flow['dst_domain'] = get_hostname(flow.get('dst_ip', ''))
     
     return jsonify({
         'active': len(flows),
@@ -199,6 +210,11 @@ def get_summary():
     stats = pipeline.get_stats()
     predictions = pipeline.get_predictions(limit=10)
     flows = pipeline.get_active_flows()
+    
+    # Add domain names to predictions
+    for pred in predictions:
+        pred['src_domain'] = get_hostname(pred.get('src_ip', ''))
+        pred['dst_domain'] = get_hostname(pred.get('dst_ip', ''))
     
     attack_count = stats['total'] - stats['benign'] if stats['total'] > 0 else 0
     attack_rate = (attack_count / stats['total'] * 100) if stats['total'] > 0 else 0

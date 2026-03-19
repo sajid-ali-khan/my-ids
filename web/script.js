@@ -165,6 +165,8 @@ function updatePredictionsTable(predictions) {
     let html = '';
     predictions.slice(0, 100).forEach(pred => {
         const time = formatTime(pred.timestamp);
+        const srcDisplay = pred.src_domain ? pred.src_domain : pred.src_ip;
+        const dstDisplay = pred.dst_domain ? pred.dst_domain : pred.dst_ip;
         const predClass = pred.prediction === 'Normal Traffic' 
             ? 'prediction-benign' 
             : 'prediction-attack';
@@ -177,8 +179,8 @@ function updatePredictionsTable(predictions) {
         html += `
             <tr>
                 <td>${time}</td>
-                <td title="${escapeHtml(pred.src_ip)}">${pred.src_ip}:${pred.src_port}</td>
-                <td title="${escapeHtml(pred.dst_ip)}">${pred.dst_ip}:${pred.dst_port}</td>
+                <td title="${escapeHtml(pred.src_ip)}:${pred.src_port}">${srcDisplay}:${pred.src_port}</td>
+                <td title="${escapeHtml(pred.dst_ip)}:${pred.dst_port}">${dstDisplay}:${pred.dst_port}</td>
                 <td><span class="${predClass}">${escapeHtml(pred.prediction.substring(0, 6))}</span></td>
                 <td><span class="${confClass}">${(pred.confidence * 100).toFixed(0)}%</span></td>
             </tr>
@@ -209,10 +211,12 @@ async function updateActiveFlows() {
         
         let html = '';
         data.flows.slice(0, 50).forEach(flow => {
+            const srcDisplay = flow.src_domain ? flow.src_domain : flow.src_ip;
+            const dstDisplay = flow.dst_domain ? flow.dst_domain : flow.dst_ip;
             html += `
                 <tr>
-                    <td title="${escapeHtml(flow.src_ip)}:${flow.src_port}">${flow.src_ip}:${flow.src_port}</td>
-                    <td title="${escapeHtml(flow.dst_ip)}:${flow.dst_port}">${flow.dst_ip}:${flow.dst_port}</td>
+                    <td title="${escapeHtml(flow.src_ip)}:${flow.src_port}">${srcDisplay}:${flow.src_port}</td>
+                    <td title="${escapeHtml(flow.dst_ip)}:${flow.dst_port}">${dstDisplay}:${flow.dst_port}</td>
                     <td>${flow.packets}</td>
                     <td>${(flow.active_time).toFixed(1)}s</td>
                 </tr>
