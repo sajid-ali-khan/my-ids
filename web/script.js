@@ -165,8 +165,6 @@ function updatePredictionsTable(predictions) {
     let html = '';
     predictions.slice(0, 100).forEach(pred => {
         const time = formatTime(pred.timestamp);
-        const srcIp = pred.src_ip.split('.').slice(-2).join('.');
-        const dstIp = pred.dst_ip.split('.').slice(-2).join('.');
         const predClass = pred.prediction === 'Normal Traffic' 
             ? 'prediction-benign' 
             : 'prediction-attack';
@@ -179,8 +177,8 @@ function updatePredictionsTable(predictions) {
         html += `
             <tr>
                 <td>${time}</td>
-                <td title="${escapeHtml(pred.src_ip)}">${srcIp}:${pred.src_port}</td>
-                <td title="${escapeHtml(pred.dst_ip)}">${dstIp}:${pred.dst_port}</td>
+                <td title="${escapeHtml(pred.src_ip)}">${pred.src_ip}:${pred.src_port}</td>
+                <td title="${escapeHtml(pred.dst_ip)}">${pred.dst_ip}:${pred.dst_port}</td>
                 <td><span class="${predClass}">${escapeHtml(pred.prediction.substring(0, 6))}</span></td>
                 <td><span class="${confClass}">${(pred.confidence * 100).toFixed(0)}%</span></td>
             </tr>
@@ -211,12 +209,10 @@ async function updateActiveFlows() {
         
         let html = '';
         data.flows.slice(0, 50).forEach(flow => {
-            const srcIp = flow.src_ip.split('.').slice(-2).join('.');
-            const dstIp = flow.dst_ip.split('.').slice(-2).join('.');
             html += `
                 <tr>
-                    <td title="${escapeHtml(flow.src_ip)}">${srcIp}:${flow.src_port}</td>
-                    <td title="${escapeHtml(flow.dst_ip)}">${dstIp}:${flow.dst_port}</td>
+                    <td title="${escapeHtml(flow.src_ip)}:${flow.src_port}">${flow.src_ip}:${flow.src_port}</td>
+                    <td title="${escapeHtml(flow.dst_ip)}:${flow.dst_port}">${flow.dst_ip}:${flow.dst_port}</td>
                     <td>${flow.packets}</td>
                     <td>${(flow.active_time).toFixed(1)}s</td>
                 </tr>
