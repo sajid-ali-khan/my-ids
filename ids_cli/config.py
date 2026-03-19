@@ -2,16 +2,31 @@
 
 import os
 import json
+import pwd
 from pathlib import Path
 from typing import Dict, Any, Optional
+
+
+def get_user_home():
+    """Get the original user's home directory, even when running with sudo."""
+    # Check if running with sudo
+    if 'SUDO_USER' in os.environ:
+        # Get the original user's home directory
+        try:
+            return Path(pwd.getpwnam(os.environ['SUDO_USER']).pw_dir)
+        except KeyError:
+            pass
+    
+    # Fall back to current user's home
+    return Path.home()
 
 
 class ConfigManager:
     """Manages IDS configuration stored in user home directory."""
     
     # Always store configuration in user's home directory
-    # This ensures consistency whether running as root or not
-    CONFIG_DIR = Path.home() / '.ids'
+    # This works correctly even when running with sudo
+    CONFIG_DIR = get_user_home() / '.ids'
     CONFIG_FILE = CONFIG_DIR / 'config.json'
     PID_FILE = CONFIG_DIR / 'server.pid'
     LOG_FILE = CONFIG_DIR / 'server.log'
