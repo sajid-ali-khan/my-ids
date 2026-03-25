@@ -47,8 +47,8 @@ class PipelineManager:
         self.idle_timeout = idle_timeout
         self.max_history = max_history
         
-        # Load model and features
-        self.model, self.feature_columns = load_model_and_features(model_dir)
+        # Load model and features (v2 preferred for real-world traffic)
+        self.model, self.feature_columns, self.is_model_v2 = load_model_and_features(model_dir, use_v2=True)
         
         # Thread management
         self.threads = {}
@@ -73,6 +73,7 @@ class PipelineManager:
         self.completed_flows_queue = queue.Queue()
         
         print(f"✓ PipelineManager initialized")
+        print(f"  - Model: {'v2 (optimized for real traffic)' if self.is_model_v2 else 'v1 (legacy)'}")
         print(f"  - Interface: {network_interface}")
         print(f"  - Model features: {len(self.feature_columns)}")
         print(f"  - Flusher interval: {flusher_interval}s")

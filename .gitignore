@@ -5,3 +5,6 @@ dist/
 build/
 *.egg-info/
 myenv/
+cicids2017_cleaned.csv
+.ipynb_checkpoints/
+IMPLEMENTATION_SUMMARY.md

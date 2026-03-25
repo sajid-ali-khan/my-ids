@@ -7,8 +7,8 @@ from pathlib import Path
 from .config import ConfigManager
 from .daemon import DaemonManager
 
-MODEL_URL = "https://github.com/sajid-ali-khan/my-ids/releases/download/v1.0.0/random_forest_model.pkl"
-COLUMNS_URL = "https://github.com/sajid-ali-khan/my-ids/releases/download/v1.0.0/model_columns.joblib"
+MODEL_URL = "https://github.com/sajid-ali-khan/my-ids/releases/download/v1.0.0/random_forest_model_v2_calibrated.pkl"
+COLUMNS_URL = "https://github.com/sajid-ali-khan/my-ids/releases/download/v1.0.0/model_columns_v2.joblib"
 
 
 def _download_file(url: str, dest_path: Path):
