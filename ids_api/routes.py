@@ -167,6 +167,49 @@ def get_flows():
     }), 200
 
 
+@api_bp.route('/aggregation-windows', methods=['GET'])
+def get_aggregation_windows():
+    """Get active flow aggregation windows for brute force detection.
+    
+    Returns:
+        JSON: {
+            "active_windows": int,
+            "windows": [
+                {
+                    "src_ip": str,
+                    "dst_ip": str,
+                    "dst_port": int,
+                    "flow_count": int,
+                    "window_age_seconds": float,
+                    "aggregate_features": {
+                        "flow_count": float,
+                        "avg_duration": float,
+                        "avg_packet_count": float,
+                        "avg_bytes": float,
+                        "fin_ratio": float,
+                        "rst_ratio": float,
+                        "connection_rate": float,
+                        ...
+                    }
+                },
+                ...
+            ]
+        }
+    """
+    pipeline = current_app.pipeline
+    windows = pipeline.get_aggregation_windows()
+    
+    # Add domain names for IPs
+    for window in windows:
+        window['src_domain'] = get_hostname(window.get('src_ip', ''))
+        window['dst_domain'] = get_hostname(window.get('dst_ip', ''))
+    
+    return jsonify({
+        'active_windows': len(windows),
+        'windows': windows
+    }), 200
+
+
 @api_bp.route('/stats', methods=['GET'])
 def get_stats():
     """Get pipeline statistics.

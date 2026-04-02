@@ -11,8 +11,16 @@ import pandas as pd
 from scapy.all import sniff, packet, conf
 from scapy.layers.inet import IP, TCP, UDP
 
+# Import Flow from project root (works with pipx installation)
+import sys
+from pathlib import Path
+_project_root = Path(__file__).parent.parent
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
+
 from flow import Flow
 from .model_loader import load_model_and_features
+from .flow_aggregator import FlowAggregator
 
 # Disable Scapy debug output
 conf.debug_dissector = 0
@@ -72,12 +80,16 @@ class PipelineManager:
         # Queue for completed flows
         self.completed_flows_queue = queue.Queue()
         
+        # Flow aggregator for detecting SSH/FTP brute force
+        self.flow_aggregator = FlowAggregator(time_window=60.0)
+        
         print(f"✓ PipelineManager initialized")
         print(f"  - Model: {'v2 (optimized for real traffic)' if self.is_model_v2 else 'v1 (legacy)'}")
         print(f"  - Interface: {network_interface}")
         print(f"  - Model features: {len(self.feature_columns)}")
         print(f"  - Flusher interval: {flusher_interval}s")
         print(f"  - Idle timeout: {idle_timeout}s")
+        print(f"  - Flow aggregation: Enabled (SSH/FTP brute force detection)")
     
     # ========================================================================
     # PUBLIC API - CONTROL METHODS
@@ -200,6 +212,16 @@ class PipelineManager:
                 })
         
         return flows
+    
+    def get_aggregation_windows(self) -> List[Dict[str, Any]]:
+        """Get information about active flow aggregation windows.
+        
+        Used for monitoring SSH/FTP brute force detection progress.
+        
+        Returns:
+            list: Active aggregation window info
+        """
+        return self.flow_aggregator.get_active_windows()
     
     # ========================================================================
     # PRIVATE - UTILITY FUNCTIONS
@@ -328,6 +350,9 @@ class PipelineManager:
                         flow = self.active_flows[key]
                         self.completed_flows_queue.put((key, flow))
                         del self.active_flows[key]
+            
+            # Periodically cleanup expired aggregation windows
+            self.flow_aggregator.cleanup_expired_windows()
         
         print("[FLUSHER] Stopped.")
     
@@ -375,5 +400,47 @@ class PipelineManager:
             print(f"Flow: {flow.src_ip}:{flow.src_port} -> {flow.dst_ip}:{flow.dst_port}")
             print(f"Packets: {len(flow.packets)}")
             print(f"{'='*60}")
+            
+            # Pass flow to aggregator for brute force detection
+            flow_duration = flow.last_seen - flow.start_time
+            has_fin = any(flags & 0x01 for _, _, _, flags, _, _, _ in flow.packets)
+            has_rst = any(flags & 0x04 for _, _, _, flags, _, _, _ in flow.packets)
+            total_bytes = sum(length for _, length, _, _, _, _, _ in flow.packets)
+            
+            aggregated_alert = self.flow_aggregator.add_flow(
+                src_ip=flow.src_ip,
+                dst_ip=flow.dst_ip,
+                src_port=flow.src_port,
+                dst_port=flow.dst_port,
+                duration=flow_duration,
+                packet_count=len(flow.packets),
+                bytes_count=total_bytes,
+                has_fin=has_fin,
+                has_rst=has_rst
+            )
+            
+            # If brute force detected, add to history
+            if aggregated_alert:
+                with self.history_lock:
+                    self.predictions_history.append(aggregated_alert)
+                
+                # Update stats for aggregated alert
+                self._update_stats(aggregated_alert['prediction'])
+                
+                # Console output for brute force alert
+                print(f"\n[AGGREGATOR] {'*'*60}")
+                print(f"🚨 {aggregated_alert['attack_type']} DETECTED")
+                print(f"Source IP: {aggregated_alert['src_ip']}")
+                print(f"Target: {aggregated_alert['dst_ip']}:{aggregated_alert['dst_port']}")
+                print(f"Flows in window: {aggregated_alert['flow_count']}")
+                print(f"Confidence: {aggregated_alert['confidence']:.4f}")
+                print(f"Window: {aggregated_alert['window_start']} -> {aggregated_alert['window_end']}")
+                print(f"Aggregate metrics:")
+                for key, value in aggregated_alert['aggregate_metrics'].items():
+                    if isinstance(value, float):
+                        print(f"  {key}: {value:.2f}")
+                    else:
+                        print(f"  {key}: {value}")
+                print(f"{'*'*60}\n")
         
         print("[CLASSIFIER] Stopped.")

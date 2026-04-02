@@ -1,5 +1,6 @@
 import joblib
 import os
+import sys
 import threading
 import queue
 import time
@@ -8,6 +9,12 @@ import pandas as pd
 from scapy.all import sniff, packet, conf
 conf.debug_dissector=2
 from scapy.layers.inet import IP, TCP, UDP
+
+# Ensure current directory is in path (works with pipx)
+_current_dir = os.path.dirname(os.path.abspath(__file__))
+if _current_dir not in sys.path:
+    sys.path.insert(0, _current_dir)
+
 from flow import Flow
 
 # ============================================================================
