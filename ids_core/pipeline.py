@@ -18,9 +18,11 @@ _project_root = Path(__file__).parent.parent
 if str(_project_root) not in sys.path:
     sys.path.insert(0, str(_project_root))
 
+
 from flow import Flow
 from .model_loader import load_model_and_features
 from .flow_aggregator import FlowAggregator
+from .store import init_db, save_alert, get_alerts, get_alert_stats, is_ip_whitelisted
 
 # Disable Scapy debug output
 conf.debug_dissector = 0
@@ -83,6 +85,14 @@ class PipelineManager:
         # Flow aggregator for detecting SSH/FTP brute force
         self.flow_aggregator = FlowAggregator(time_window=60.0)
         
+        # Initialize SQLite database for persistent alert storage
+        try:
+            init_db()
+            self.db_enabled = True
+        except Exception as e:
+            print(f"⚠️  Database initialization failed: {e}")
+            self.db_enabled = False
+        
         print(f"✓ PipelineManager initialized")
         print(f"  - Model: {'v2 (optimized for real traffic)' if self.is_model_v2 else 'v1 (legacy)'}")
         print(f"  - Interface: {network_interface}")
@@ -90,6 +100,7 @@ class PipelineManager:
         print(f"  - Flusher interval: {flusher_interval}s")
         print(f"  - Idle timeout: {idle_timeout}s")
         print(f"  - Flow aggregation: Enabled (SSH/FTP brute force detection)")
+        print(f"  - Database: {'Enabled (/opt/nids/alerts.db)' if self.db_enabled else 'Disabled'}")
     
     # ========================================================================
     # PUBLIC API - CONTROL METHODS
@@ -222,6 +233,178 @@ class PipelineManager:
             list: Active aggregation window info
         """
         return self.flow_aggregator.get_active_windows()
+    
+    def get_persistent_alerts(self, limit: int = 50, severity: Optional[str] = None,
+                             attack_type: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get persistent alerts from SQLite database.
+        
+        Args:
+            limit: Maximum alerts to return
+            severity: Filter by severity ('critical', 'high', 'medium', 'low')
+            attack_type: Filter by attack type
+            
+        Returns:
+            list: Alert records from database
+        """
+        if not self.db_enabled:
+            return []
+        
+        return get_alerts(limit=limit, severity=severity, attack_type=attack_type)
+    
+    def get_persistent_alert_stats(self) -> Dict[str, Any]:
+        """Get statistics about persistent alerts from database.
+        
+        Returns:
+            dict: Alert statistics
+        """
+        if not self.db_enabled:
+            return {
+                'total_alerts': 0,
+                'by_severity': {},
+                'by_attack_type': {},
+                'critical_count': 0,
+                'high_count': 0,
+                'acknowledged_count': 0,
+                'today_count': 0
+            }
+        
+        return get_alert_stats()
+    
+    def _is_suspicious_traffic(self, prediction: str, confidence: float) -> bool:
+        """Check if traffic is suspicious (normal/benign with low confidence).
+        
+        Args:
+            prediction: Class prediction
+            confidence: Confidence score
+            
+        Returns:
+            bool: True if suspicious
+        """
+        is_benign = prediction == 'Benign' or prediction == 'Normal Traffic'
+        is_low_confidence = confidence < 0.91
+        return is_benign and is_low_confidence
+    
+    def _save_alert_if_attack(self, pred_record: Dict[str, Any], 
+                             flow: 'Flow', prediction: str, 
+                             confidence: float) -> bool:
+        """Save alert to database if prediction is an attack or suspicious.
+        
+        Saves two types of alerts:
+        1. Regular attacks (confidently identified malicious traffic)
+        2. Suspicious traffic (normal traffic classified with low confidence)
+        
+        Args:
+            pred_record: Prediction record (has metadata)
+            flow: Flow object
+            prediction: Class prediction
+            confidence: Confidence score
+            
+        Returns:
+            bool: True if alert was saved
+        """
+        if not self.db_enabled:
+            return False
+        
+        # Check for suspicious traffic (normal/benign with low confidence)
+        is_suspicious = self._is_suspicious_traffic(prediction, confidence)
+        
+        # Determine if this should be saved
+        is_attack = not (prediction == 'Benign' or prediction == 'Normal Traffic')
+        
+        if not (is_attack or is_suspicious):
+            return False
+        
+        # Check whitelist
+        if is_ip_whitelisted(flow.src_ip):
+            return False
+        
+        # Determine severity based on confidence and prediction
+        if is_suspicious:
+            # Suspicious traffic is always marked as low severity
+            severity = 'low'
+            attack_type = 'Suspicious'
+        else:
+            # Regular attack severity determination
+            if confidence >= 0.9:
+                severity = 'critical'
+            elif confidence >= 0.75:
+                severity = 'high'
+            elif confidence >= 0.6:
+                severity = 'medium'
+            else:
+                severity = 'low'
+            attack_type = prediction
+        
+        alert_dict = {
+            'timestamp': time.time(),
+            'src_ip': flow.src_ip,
+            'dst_ip': flow.dst_ip,
+            'src_port': flow.src_port,
+            'dst_port': flow.dst_port,
+            'protocol': flow.protocol,
+            'attack_type': attack_type,
+            'confidence': confidence,
+            'severity': severity,
+            'is_aggregated': 0,
+            'flow_count': 1
+        }
+        
+        try:
+            save_alert(alert_dict)
+            if is_suspicious:
+                print(f"[DB] ⚠️  Saved SUSPICIOUS alert: {flow.src_ip}:{flow.src_port} -> {flow.dst_ip}:{flow.dst_port} (confidence: {confidence:.2%})")
+            else:
+                print(f"[DB] ✓ Saved attack alert: {attack_type}")
+            return True
+        except Exception as e:
+            print(f"[DB] Error saving alert: {e}")
+            return False
+    
+    def _save_aggregated_alert(self, aggregated_alert: Dict[str, Any]) -> bool:
+        """Save aggregated alert (brute force) to database.
+        
+        Args:
+            aggregated_alert: Alert from flow aggregator
+            
+        Returns:
+            bool: True if alert was saved
+        """
+        if not self.db_enabled:
+            return False
+        
+        # Check whitelist
+        if is_ip_whitelisted(aggregated_alert['src_ip']):
+            return False
+        
+        # Determine severity
+        confidence = aggregated_alert['confidence']
+        if confidence >= 0.9:
+            severity = 'critical'
+        elif confidence >= 0.75:
+            severity = 'high'
+        else:
+            severity = 'medium'
+        
+        alert_dict = {
+            'timestamp': time.time(),
+            'src_ip': aggregated_alert['src_ip'],
+            'dst_ip': aggregated_alert['dst_ip'],
+            'src_port': 0,  # Not applicable for aggregate
+            'dst_port': aggregated_alert['dst_port'],
+            'protocol': 6,  # TCP (typically brute force)
+            'attack_type': aggregated_alert['attack_type'],
+            'confidence': confidence,
+            'severity': severity,
+            'is_aggregated': 1,
+            'flow_count': aggregated_alert.get('flow_count', 1)
+        }
+        
+        try:
+            save_alert(alert_dict)
+            return True
+        except Exception as e:
+            print(f"[DB] Error saving aggregated alert: {e}")
+            return False
     
     # ========================================================================
     # PRIVATE - UTILITY FUNCTIONS
@@ -393,13 +576,22 @@ class PipelineManager:
             # Update stats
             self._update_stats(prediction)
             
+            # Check for suspicious traffic
+            confidence_val = float(max(probabilities))
+            is_suspicious = self._is_suspicious_traffic(prediction, confidence_val)
+            
             # Console output
             print(f"\n[CLASSIFIER] {'='*60}")
+            if is_suspicious:
+                print(f"⚠️  SUSPICIOUS TRAFFIC (normal/benign with low confidence)")
             print(f"Prediction: {prediction}")
-            print(f"Confidence: {max(probabilities):.4f}")
+            print(f"Confidence: {confidence_val:.4f}")
             print(f"Flow: {flow.src_ip}:{flow.src_port} -> {flow.dst_ip}:{flow.dst_port}")
             print(f"Packets: {len(flow.packets)}")
             print(f"{'='*60}")
+            
+            # Save attack to persistent database (attacks only, benign with low confidence)
+            self._save_alert_if_attack(pred_record, flow, prediction, confidence_val)
             
             # Pass flow to aggregator for brute force detection
             flow_duration = flow.last_seen - flow.start_time
@@ -426,6 +618,9 @@ class PipelineManager:
                 
                 # Update stats for aggregated alert
                 self._update_stats(aggregated_alert['prediction'])
+                
+                # Save aggregated alert to persistent database
+                self._save_aggregated_alert(aggregated_alert)
                 
                 # Console output for brute force alert
                 print(f"\n[AGGREGATOR] {'*'*60}")

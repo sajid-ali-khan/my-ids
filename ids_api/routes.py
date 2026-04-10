@@ -399,3 +399,74 @@ def get_model_info():
         'model_type': str(type(pipeline.model).__name__),
         'classes': class_names
     }), 200
+
+
+# ============================================================================
+# PERSISTENT ALERTS - SQLite Database
+# ============================================================================
+
+@api_bp.route('/persistent-alerts', methods=['GET'])
+def get_persistent_alerts():
+    """Get persistent alerts from SQLite database.
+    
+    Query parameters:
+        - limit (int, optional): Max alerts to return (default: 50, max: 500)
+        - severity (str, optional): Filter by severity (critical, high, medium, low)
+        - attack_type (str, optional): Filter by attack type
+        - offset (int, optional): Number of alerts to skip
+    
+    Returns:
+        JSON: {
+            "total": int,
+            "alerts": [alert_record, ...]
+        }
+    """
+    pipeline = current_app.pipeline
+    
+    if not pipeline.db_enabled:
+        return jsonify({
+            'error': 'Database not enabled',
+            'alerts': []
+        }), 503
+    
+    limit = request.args.get('limit', 50, type=int)
+    limit = min(limit, 500)  # Cap at 500
+    limit = max(limit, 1)
+    
+    severity = request.args.get('severity', None, type=str)
+    attack_type = request.args.get('attack_type', None, type=str)
+    
+    alerts = pipeline.get_persistent_alerts(limit=limit, severity=severity, attack_type=attack_type)
+    
+    return jsonify({
+        'total': len(alerts),
+        'alerts': alerts
+    }), 200
+
+
+@api_bp.route('/alert-stats', methods=['GET'])
+def get_alert_statistics():
+    """Get statistics about persistent alerts.
+    
+    Returns:
+        JSON: {
+            "total_alerts": int,
+            "by_severity": {severity: count, ...},
+            "by_attack_type": {attack_type: count, ...},
+            "critical_count": int,
+            "high_count": int,
+            "acknowledged_count": int,
+            "today_count": int
+        }
+    """
+    pipeline = current_app.pipeline
+    
+    if not pipeline.db_enabled:
+        return jsonify({
+            'error': 'Database not enabled',
+            'total_alerts': 0
+        }), 503
+    
+    stats = pipeline.get_persistent_alert_stats()
+    
+    return jsonify(stats), 200

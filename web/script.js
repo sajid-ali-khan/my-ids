@@ -402,3 +402,178 @@ function showSettingsMessage(message, type) {
         msgEl.className = 'settings-message';
     }, 3000);
 }
+
+// ============================================================================
+// Tab Management
+// ============================================================================
+
+function switchTab(tabName) {
+    // Hide all tab contents
+    document.getElementById('tab-live-content').style.display = 'none';
+    document.getElementById('tab-history-content').style.display = 'none';
+    
+    // Remove active class from all buttons
+    document.getElementById('tab-live').classList.remove('active');
+    document.getElementById('tab-history').classList.remove('active');
+    
+    // Show selected tab
+    if (tabName === 'live') {
+        document.getElementById('tab-live-content').style.display = '';
+        document.getElementById('tab-live').classList.add('active');
+        startAutoRefresh();  // Resume live updates
+    } else if (tabName === 'history') {
+        document.getElementById('tab-history-content').style.display = '';
+        document.getElementById('tab-history').classList.add('active');
+        stopAutoRefresh();  // Stop live updates to reduce API calls
+        loadAlertHistory();  // Load alerts for this tab
+    }
+}
+
+// ============================================================================
+// Alert History Functions
+// ============================================================================
+
+async function loadAlertHistory() {
+    try {
+        const limit = document.getElementById('filterLimit').value || 50;
+        const severity = document.getElementById('filterSeverity').value;
+        const attackType = document.getElementById('filterAttackType').value;
+        
+        // Build query string
+        const params = new URLSearchParams();
+        params.append('limit', limit);
+        if (severity) params.append('severity', severity);
+        if (attackType) params.append('attack_type', attackType);
+        
+        // Get alerts
+        const alertResp = await fetch(`${API_BASE}/persistent-alerts?${params}`);
+        const alertData = await alertResp.json();
+        
+        // Get stats
+        const statsResp = await fetch(`${API_BASE}/alert-stats`);
+        const stats = await statsResp.json();
+        
+        if (alertResp.ok) {
+            updateAlertTable(alertData.alerts || []);
+            updateAlertStats(stats);
+        } else {
+            console.error('[Dashboard] Error loading alerts:', alertData);
+            updateAlertTable([]);
+        }
+        
+    } catch (error) {
+        console.error('[Dashboard] Error loading alert history:', error);
+    }
+}
+
+function updateAlertStats(stats) {
+    document.getElementById('statTotalAlerts').textContent = stats.total_alerts || 0;
+    document.getElementById('statCritical').textContent = stats.critical_count || 0;
+    document.getElementById('statHigh').textContent = stats.high_count || 0;
+    document.getElementById('statToday').textContent = stats.today_count || 0;
+    document.getElementById('statAcknowledged').textContent = stats.acknowledged_count || 0;
+}
+
+function updateAlertTable(alerts) {
+    const tbody = document.querySelector('#alertsTable tbody');
+    document.getElementById('alertCount').textContent = alerts.length;
+    
+    if (alerts.length === 0) {
+        tbody.innerHTML = '<tr class="no-data"><td colspan="8">No alerts found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = alerts.map(alert => {
+        const timestamp = new Date(alert.timestamp * 1000).toLocaleString();
+        const severityClass = `severity-${alert.severity}`;
+        const statusClass = alert.acknowledged ? 'status-acked' : 'status-pending';
+        const statusText = alert.acknowledged ? '✓ Acknowledged' : '⏳ Pending';
+        const btnClass = alert.acknowledged ? 'btn-ack acked' : 'btn-ack';
+        const btnText = alert.acknowledged ? '✓ Confirmed' : 'Acknowledge';
+        const btnDisabled = alert.acknowledged ? 'disabled' : '';
+        
+        // Check if this is a suspicious alert
+        const isSuspicious = alert.attack_type === 'Suspicious';
+        const rowClass = isSuspicious ? 'suspicious-row' : '';
+        const attackTypeClass = isSuspicious ? 'attack-type-suspicious' : '';
+        const attackTypeDisplay = isSuspicious ? '⚠️  ' + escapeHtml(alert.attack_type) : escapeHtml(alert.attack_type);
+        
+        return `
+            <tr class="${rowClass}">
+                <td>${escapeHtml(timestamp.split(' ')[1])}</td>
+                <td><span class="${severityClass}">${escapeHtml(alert.severity.toUpperCase())}</span></td>
+                <td><span class="${attackTypeClass}">${attackTypeDisplay}</span></td>
+                <td>${escapeHtml(alert.src_ip)}:${alert.src_port || '-'}</td>
+                <td>${escapeHtml(alert.dst_ip)}:${alert.dst_port}</td>
+                <td>${(alert.confidence * 100).toFixed(0)}%</td>
+                <td><span class="${statusClass}">${statusText}</span></td>
+                <td>
+                    <button class="${btnClass}" onclick="acknowledgeAlert(${alert.id})" ${btnDisabled}>
+                        ${btnText}
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+async function acknowledgeAlert(alertId) {
+    try {
+        // TODO: Implement acknowledge endpoint
+        // For now, just show message
+        alert('Acknowledge functionality coming soon!');
+    } catch (error) {
+        console.error('[Dashboard] Error acknowledging alert:', error);
+    }
+}
+
+function exportAlertsCSV() {
+    try {
+        const severity = document.getElementById('filterSeverity').value;
+        let filename = 'ids-alerts.csv';
+        
+        if (severity) {
+            filename = `ids-alerts-${severity}.csv`;
+        }
+        
+        // Get current alerts from table
+        const table = document.getElementById('alertsTable');
+        const rows = [];
+        
+        // Add headers
+        rows.push('Time,Severity,Attack Type,Source,Destination,Confidence,Status,Acknowledged');
+        
+        // Add data rows
+        table.querySelectorAll('tbody tr').forEach(tr => {
+            if (!tr.classList.contains('no-data')) {
+                const cells = tr.querySelectorAll('td');
+                const row = Array.from(cells).map((cell, idx) => {
+                    // Skip action column  (last one)
+                    if (idx < cells.length - 1) {
+                        return '"' + cell.textContent.trim().replace(/"/g, '""') + '"';
+                    }
+                    return '';
+                }).slice(0, -1).join(',');
+                
+                rows.push(row);
+            }
+        });
+        
+        // Create blob and download
+        const csv = rows.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+    } catch (error) {
+        console.error('[Dashboard] Error exporting alerts:', error);
+        alert('Failed to export alerts');
+    }
+}

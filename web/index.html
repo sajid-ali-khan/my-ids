@@ -22,8 +22,18 @@
             </div>
         </header>
 
-        <!-- Main Content Grid -->
-        <main class="dashboard-grid">
+        <!-- Tab Navigation -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('live')" id="tab-live">
+                📊 Live Monitor
+            </button>
+            <button class="tab-btn" onclick="switchTab('history')" id="tab-history">
+                🔍 Alert History
+            </button>
+        </nav>
+
+        <!-- LIVE MONITORING TAB -->
+        <main class="dashboard-grid" id="tab-live-content">
             
             <!-- Left Column: Control & Stats -->
             <div class="column column-left">
@@ -195,6 +205,119 @@
                 </section>
             </div>
 
+        </main>
+
+        <!-- ALERT HISTORY TAB -->
+        <main class="dashboard-grid" id="tab-history-content" style="display: none;">
+            <div style="width: 100%; grid-column: 1 / -1;">
+                <!-- Alert Filters -->
+                <section class="cell compact">
+                    <div class="cell-header">
+                        <h3>🔍 Filters</h3>
+                    </div>
+                    <div class="cell-body">
+                        <div class="filter-grid">
+                            <div class="filter-group">
+                                <label>Severity</label>
+                                <select id="filterSeverity" onchange="loadAlertHistory()">
+                                    <option value="">All Severities</option>
+                                    <option value="critical">🔴 Critical</option>
+                                    <option value="high">🟠 High</option>
+                                    <option value="medium">🟡 Medium</option>
+                                    <option value="low">🟢 Low</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Attack Type</label>
+                                <select id="filterAttackType" onchange="loadAlertHistory()">
+                                    <option value="">All Types</option>
+                                    <option value="Suspicious">⚠️  Suspicious</option>
+                                    <option value="SSH Brute Force">SSH Brute Force</option>
+                                    <option value="FTP Brute Force">FTP Brute Force</option>
+                                    <option value="Bot-Attack">Bot Attack</option>
+                                    <option value="DDoS">DDoS</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Limit</label>
+                                <select id="filterLimit" onchange="loadAlertHistory()">
+                                    <option value="25">25</option>
+                                    <option value="50" selected>50</option>
+                                    <option value="100">100</option>
+                                    <option value="250">250</option>
+                                    <option value="500">500</option>
+                                </select>
+                            </div>
+                            <div class="filter-actions">
+                                <button class="btn btn-primary" onclick="loadAlertHistory()">🔄 Refresh</button>
+                                <button class="btn btn-secondary" onclick="exportAlertsCSV()">📥 Export CSV</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Alert Statistics -->
+                <section class="cell compact">
+                    <div class="cell-header">
+                        <h3>📈 Statistics</h3>
+                    </div>
+                    <div class="cell-body">
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-label">Total Alerts</div>
+                                <div class="stat-value" id="statTotalAlerts">-</div>
+                            </div>
+                            <div class="stat-box critical">
+                                <div class="stat-label">Critical</div>
+                                <div class="stat-value" id="statCritical">-</div>
+                            </div>
+                            <div class="stat-box high">
+                                <div class="stat-label">High</div>
+                                <div class="stat-value" id="statHigh">-</div>
+                            </div>
+                            <div class="stat-box today">
+                                <div class="stat-label">Today</div>
+                                <div class="stat-value" id="statToday">-</div>
+                            </div>
+                            <div class="stat-box acked">
+                                <div class="stat-label">Acknowledged</div>
+                                <div class="stat-value" id="statAcknowledged">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Alerts Table -->
+                <section class="cell">
+                    <div class="cell-header">
+                        <h3>📋 Alert History</h3>
+                        <span class="alert-count" id="alertCount">0</span>
+                    </div>
+                    <div class="cell-body">
+                        <div class="table-container">
+                            <table class="table table-alerts" id="alertsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Severity</th>
+                                        <th>Attack Type</th>
+                                        <th>Source</th>
+                                        <th>Target</th>
+                                        <th>Confidence</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="no-data">
+                                        <td colspan="8">Loading alerts...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
         </main>
     </div>
 
