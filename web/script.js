@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load initial data
     loadConfig();
+    loadSettings();
     updateAll();
     
     // Start periodic updates
@@ -318,4 +319,86 @@ function escapeHtml(unsafe) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+}
+
+// ============================================================================
+// Settings Management
+// ============================================================================
+
+async function loadSettings() {
+    try {
+        const resp = await fetch(`${API_BASE}/config`);
+        const config = await resp.json();
+        
+        document.getElementById('settingsFlusherInterval').value = config.flusher_interval;
+        document.getElementById('settingsIdleTimeout').value = config.idle_timeout;
+        document.getElementById('settingsMaxHistory').value = config.max_history;
+        
+        showSettingsMessage('Settings loaded', 'success');
+        
+    } catch (error) {
+        console.error('[Dashboard] Error loading settings:', error);
+        showSettingsMessage('Failed to load settings', 'error');
+    }
+}
+
+async function saveSettings() {
+    try {
+        const flusherInterval = parseInt(document.getElementById('settingsFlusherInterval').value);
+        const idleTimeout = parseInt(document.getElementById('settingsIdleTimeout').value);
+        const maxHistory = parseInt(document.getElementById('settingsMaxHistory').value);
+        
+        // Validation
+        if (!flusherInterval || flusherInterval <= 0) {
+            showSettingsMessage('Flusher interval must be > 0', 'error');
+            return;
+        }
+        if (!idleTimeout || idleTimeout <= 0) {
+            showSettingsMessage('Idle timeout must be > 0', 'error');
+            return;
+        }
+        if (!maxHistory || maxHistory <= 0) {
+            showSettingsMessage('Max history must be > 0', 'error');
+            return;
+        }
+        
+        // Send update request
+        const resp = await fetch(`${API_BASE}/config`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                flusher_interval: flusherInterval,
+                idle_timeout: idleTimeout,
+                max_history: maxHistory
+            })
+        });
+        
+        const result = await resp.json();
+        
+        if (resp.ok && result.status === 'success') {
+            showSettingsMessage('✓ Settings saved successfully', 'success');
+            // Reload config display
+            loadConfig();
+        } else {
+            showSettingsMessage('Error: ' + (result.message || result.error || 'Unknown error'), 'error');
+        }
+        
+    } catch (error) {
+        console.error('[Dashboard] Error saving settings:', error);
+        showSettingsMessage('Failed to save settings', 'error');
+    }
+}
+
+function showSettingsMessage(message, type) {
+    const msgEl = document.getElementById('settingsMessage');
+    msgEl.textContent = message;
+    msgEl.className = 'settings-message ' + type;
+    
+    // Clear message after 3 seconds
+    setTimeout(() => {
+        msgEl.textContent = '';
+        msgEl.className = 'settings-message';
+    }, 3000);
 }

@@ -284,22 +284,100 @@ def get_summary():
 # UTILITY ENDPOINTS
 # ============================================================================
 
-@api_bp.route('/config', methods=['GET'])
-def get_config():
-    """Get pipeline configuration.
+@api_bp.route('/config', methods=['GET', 'POST'])
+def manage_config():
+    """Get or update pipeline configuration.
     
-    Returns:
+    GET Returns:
         JSON: Configuration details
+        
+    POST Parameters (JSON):
+        - flusher_interval (int, optional): Interval for flusher thread in seconds
+        - idle_timeout (int, optional): Timeout for idle flows in seconds
+        - max_history (int, optional): Maximum prediction history size
+        
+    POST Returns:
+        JSON: Updated configuration
     """
+    from ids_cli.config import ConfigManager
+    
     pipeline = current_app.pipeline
     
-    return jsonify({
-        'network_interface': pipeline.network_interface,
-        'flusher_interval': pipeline.flusher_interval,
-        'idle_timeout': pipeline.idle_timeout,
-        'features_count': len(pipeline.feature_columns),
-        'max_history': pipeline.max_history
-    }), 200
+    if request.method == 'GET':
+        # Return current configuration
+        return jsonify({
+            'network_interface': pipeline.network_interface,
+            'flusher_interval': pipeline.flusher_interval,
+            'idle_timeout': pipeline.idle_timeout,
+            'max_history': pipeline.max_history,
+            'features_count': len(pipeline.feature_columns),
+            'model_type': str(type(pipeline.model).__name__)
+        }), 200
+    
+    elif request.method == 'POST':
+        # Update configuration
+        try:
+            data = request.get_json()
+            
+            updates = {}
+            
+            # Validate and extract flusher_interval
+            if 'flusher_interval' in data:
+                flusher_interval = int(data['flusher_interval'])
+                if flusher_interval <= 0:
+                    return jsonify({'error': 'flusher_interval must be > 0'}), 400
+                updates['flusher_interval'] = flusher_interval
+                pipeline.flusher_interval = flusher_interval
+            
+            # Validate and extract idle_timeout
+            if 'idle_timeout' in data:
+                idle_timeout = int(data['idle_timeout'])
+                if idle_timeout <= 0:
+                    return jsonify({'error': 'idle_timeout must be > 0'}), 400
+                updates['idle_timeout'] = idle_timeout
+                pipeline.idle_timeout = idle_timeout
+            
+            # Validate and extract max_history
+            if 'max_history' in data:
+                max_history = int(data['max_history'])
+                if max_history <= 0:
+                    return jsonify({'error': 'max_history must be > 0'}), 400
+                updates['max_history'] = max_history
+                pipeline.max_history = max_history
+            
+            # Save to config file
+            if updates:
+                if ConfigManager.update(updates):
+                    return jsonify({
+                        'status': 'success',
+                        'message': 'Configuration updated successfully',
+                        'config': {
+                            'flusher_interval': pipeline.flusher_interval,
+                            'idle_timeout': pipeline.idle_timeout,
+                            'max_history': pipeline.max_history
+                        }
+                    }), 200
+                else:
+                    return jsonify({
+                        'status': 'error',
+                        'message': 'Failed to save configuration'
+                    }), 500
+            else:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'No valid configuration parameters provided'
+                }), 400
+        
+        except (ValueError, TypeError) as e:
+            return jsonify({
+                'status': 'error',
+                'message': f'Invalid parameter format: {str(e)}'
+            }), 400
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'message': f'Error updating configuration: {str(e)}'
+            }), 500
 
 
 @api_bp.route('/model', methods=['GET'])

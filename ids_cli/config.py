@@ -38,6 +38,9 @@ class ConfigManager:
         'model_dir': './model',
         'debug': False,
         'host': '0.0.0.0',
+        'flusher_interval': 20,
+        'idle_timeout': 30,
+        'max_history': 100,
     }
     
     def __init__(self):

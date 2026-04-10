@@ -29,23 +29,42 @@ def main():
     # Load configuration from ~/.ids/config.json
     config = ConfigManager.load()
     
+    # Ensure config file has all required fields, save if needed
+    config_needs_update = False
+    for key, default_value in ConfigManager.DEFAULTS.items():
+        if key not in config:
+            config[key] = default_value
+            config_needs_update = True
+    
+    if config_needs_update:
+        ConfigManager.save(config)
+    
     # Get settings from config, with fallbacks to environment variables or defaults
     interface = config.get('interface', os.getenv('IDS_INTERFACE', 'eth0'))
     port = int(config.get('port', os.getenv('IDS_PORT', 5000)))
     model_dir = config.get('model_dir', os.getenv('IDS_MODEL_DIR', './model'))
     debug = config.get('debug', False)
     host = config.get('host', '0.0.0.0')
+    flusher_interval = int(config.get('flusher_interval', os.getenv('IDS_FLUSHER_INTERVAL', 20)))
+    idle_timeout = int(config.get('idle_timeout', os.getenv('IDS_IDLE_TIMEOUT', 30)))
+    max_history = int(config.get('max_history', os.getenv('IDS_MAX_HISTORY', 100)))
     
     print(f"  - Interface: {interface}")
     print(f"  - Port: {port}")
     print(f"  - Model Dir: {model_dir}")
     print(f"  - Debug Mode: {debug}")
+    print(f"  - Flusher Interval: {flusher_interval}s")
+    print(f"  - Idle Timeout: {idle_timeout}s")
+    print(f"  - Max History: {max_history}")
     
     # --- Initialize Core Pipeline ---
     try:
         pipeline = PipelineManager(
             model_dir=model_dir,
-            network_interface=interface
+            network_interface=interface,
+            flusher_interval=flusher_interval,
+            idle_timeout=idle_timeout,
+            max_history=max_history
         )
     except Exception as e:
         print(f"✗ FATAL: Failed to initialize pipeline: {e}")
