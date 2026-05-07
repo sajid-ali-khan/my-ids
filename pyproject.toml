@@ -37,10 +37,12 @@ ids-cli = "ids_cli.cli:main"
 
 [tool.setuptools]
 include-package-data = true
-py-modules = ["run_server", "flow", "capture"]
+py-modules = ["scripts.run_server", "scripts.flow", "scripts.capture"]
+package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 include = ["ids_api*", "ids_cli*", "ids_core*", "web*"]
+where = ["src"]
 
 [tool.setuptools.package-data]
 web = ["*.html", "*.css", "*.js"]

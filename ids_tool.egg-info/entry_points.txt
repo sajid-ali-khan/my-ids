@@ -1,2 +1,0 @@
-[console_scripts]
-ids-cli = ids_cli.cli:main

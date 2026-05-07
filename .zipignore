@@ -1,0 +1,14 @@
+myenv/
+.git/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.pyo
+*.egg-info/
+.ipynb_checkpoints/
+dist/
+build/
+.venv/
+venv/
+*.egg
+.DS_Store

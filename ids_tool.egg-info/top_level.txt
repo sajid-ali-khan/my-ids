@@ -1,3 +1,0 @@
-ids_api
-ids_cli
-ids_core

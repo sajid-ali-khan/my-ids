@@ -10,11 +10,16 @@ import os
 import sys
 from pathlib import Path
 
-# Ensure the project root is in the Python path
+# Ensure the project root and src directory are in the Python path
 # This is necessary for the pipx installation to find the modules
-project_root = Path(__file__).parent
+script_dir = Path(__file__).parent
+project_root = script_dir.parent
+src_dir = project_root / 'src'
+
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
+if str(src_dir) not in sys.path:
+    sys.path.insert(0, str(src_dir))
 
 from ids_api import create_app
 from ids_core import PipelineManager

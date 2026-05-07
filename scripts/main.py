@@ -10,18 +10,21 @@ from scapy.all import sniff, packet, conf
 conf.debug_dissector=2
 from scapy.layers.inet import IP, TCP, UDP
 
-# Ensure current directory is in path (works with pipx)
-_current_dir = os.path.dirname(os.path.abspath(__file__))
-if _current_dir not in sys.path:
-    sys.path.insert(0, _current_dir)
+# Ensure parent directory is in path for src modules
+_script_dir = os.path.dirname(os.path.abspath(__file__))
+_project_root = os.path.dirname(_script_dir)
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+if os.path.join(_project_root, 'src') not in sys.path:
+    sys.path.insert(0, os.path.join(_project_root, 'src'))
 
 from flow import Flow
 
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
-MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model', 'random_forest_model.pkl')
-COLUMNS_PATH = os.path.join(os.path.dirname(__file__), 'model', 'model_columns.joblib')
+MODEL_PATH = os.path.join(_project_root, 'model', 'random_forest_model.pkl')
+COLUMNS_PATH = os.path.join(_project_root, 'model', 'model_columns.joblib')
 NETWORK_INTERFACE = 'wlp3s0'
 FLUSHER_INTERVAL = 20  # seconds
 FLOW_IDLE_TIMEOUT = 30  # seconds

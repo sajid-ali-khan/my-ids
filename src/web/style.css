@@ -9,7 +9,9 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+        Cantarell, sans-serif;
     background-color: #fafafa;
     color: #333;
     line-height: 1.6;
@@ -85,8 +87,13 @@ body {
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
 }
 
 /* ============================================================================
@@ -182,7 +189,8 @@ body {
     margin: 0;
 }
 
-.flow-count, .pred-count {
+.flow-count,
+.pred-count {
     font-size: 11px;
     color: #7f8c8d;
     font-weight: normal;
@@ -504,7 +512,8 @@ body {
         font-size: 14px;
     }
 
-    .table th, .table.table-compact td {
+    .table th,
+    .table.table-compact td {
         padding: 4px;
         font-size: 10px;
     }
@@ -537,7 +546,7 @@ body {
     border: 1px solid #d0d0d0;
     border-radius: 4px;
     font-size: 13px;
-    font-family: 'Courier New', monospace;
+    font-family: "Courier New", monospace;
     transition: border-color 0.2s;
 }
 
@@ -651,6 +660,13 @@ body {
 /* ============================================================================
    Alert History - Filters and Stats
    ============================================================================ */
+
+#tab-history-content {
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+    padding-right: 4px;
+}
 
 .filter-grid {
     display: grid;
